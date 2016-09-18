@@ -1,4 +1,4 @@
-This is just a collection of some exercises and solutions from the second edition of the
+This is just a collection of some exercises and solutions from the 
 book `How to design programs 2e`_. 
 
 These are just my solutions and are by no means the right way to solve them. And sometimes
