@@ -7,7 +7,7 @@
 (define BACKGROUND-H 200)
 
 (define GROUND-H (/ BACKGROUND-H 3))
-(define GROUND (rectangle BACKGROUND-W GROUND-H "solid" "sandybrown"))
+(define GROUND (rectangle BACKGROUND-W GROUND-H "solid" "khaki"))
 
 (define BACKGROUND 
   (overlay/align
