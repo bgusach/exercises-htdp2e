@@ -41,7 +41,7 @@
 ;   speed dx pixels/tick
 
 ; a Missile is a Posn
-; interpretation (make-posn x y): missile location
+; interepretation (make-posn x y): missile location
 
 
 (define-struct aim [ufo tank])
@@ -63,17 +63,41 @@
 (define (render-world world)
   (place-image 
     TANK
-    40
+    (tank-loc (tank-from-world world))
     (- BACKGROUND-H TANK-H)
     (place-image
       MISSILE
-      40
-      (- BACKGROUND-H TANK-H MISSILE-H)
+      ; This repetition is annoying: waiting for some kind of let...
+      (posn-x (missile-location world))
+      (posn-y (missile-location world))
       (place-image
         UFO
-        60
-        60
+        (posn-x (ufo-from-world world))
+        (posn-y (ufo-from-world world))
         BACKGROUND))))
+
+
+; SIGS -> make-posn
+(define (missile-location world)
+  (cond 
+    [(fired? world) (fired-missile world)]
+    [else (make-posn 
+            (tank-loc (aim-tank world))
+            (- BACKGROUND-H TANK-H MISSILE-H))]))
+
+
+; SIGS -> make-tank
+(define (tank-from-world world)
+  ; I hope there are more polymorphic ways of doing this... 
+  (cond 
+    [(fired? world) (fired-tank world)]
+    [else (aim-tank world)]))
+
+; SIGS -> sUFO
+(define (ufo-from-world world)
+  (cond
+    [(fired? world) (fired-ufo world)]
+    [else (aim-ufo world)]))
 
 
 (define (main world)
@@ -81,4 +105,5 @@
     world
     [to-draw render-world]))
 
-(main "fake world")
+(main (make-aim (make-posn 30 70) (make-tank 200 0)))  ; still aiming
+(main (make-fired (make-posn 10 10) (make-tank 50 0) (make-posn 60 60))) ; already fired
