@@ -52,6 +52,8 @@
 ; interepretation: #false means the missile has not been fired yet
 ; whereas a Posn represents the position of a fired missile
 
+
+; MaybeMissile -> Boolean
 (define (missile? missile)
   (posn? missile))
 
@@ -114,6 +116,7 @@
     (posn-y mis)
     img))
 
+
 ; SIGS -> Image
 ; renders the frame when the game is over
 (define (si-render-final ws)
@@ -134,6 +137,7 @@
      (ufo-landed (sigs-ufo ws))
      (missile-hitting (sigs-missile ws) (sigs-ufo ws))))
 
+
 ; sUFO -> Boolean
 ; Returns whether the UFO has landed
 (define (ufo-landed ufo)
@@ -142,6 +146,8 @@
 
 ; sUFO Missile -> Boolean
 ; Returns whether the missile is hitting the UFO
+(check-expect (missile-hitting #false (make-posn 0 0)) #false)
+(check-expect (missile-hitting (make-posn 0 0) (make-posn 0 0)) #true)
 (define (missile-hitting missile ufo)
   (and 
     (missile? missile)
@@ -164,11 +170,15 @@
 
 
 ; MaybeMissile -> MaybeMissile
+; moves a MaybeMissile one tick further
+(check-expect (move-missile #false) #false)
+(check-expect (move-missile (make-posn 0 0))(make-posn 0 MISSILE-SPEED))
 (define (move-missile missile)
-  (if
-    (missile? missile)
-    (move-posn missile 0 MISSILE-SPEED)
-    #false))
+  (cond
+    [(missile? missile)
+     (move-posn missile 0 MISSILE-SPEED)]
+
+    [else #false]))
 
 
 ; sUFO -> sUFO
@@ -250,6 +260,7 @@
     [stop-when si-game-over si-render-final]
     [on-tick si-move]
     [on-key si-control]))
+
 
 (test)
 (main (make-sigs (make-posn (random BACKGROUND-W) 20) (make-tank 200 0) #false))
