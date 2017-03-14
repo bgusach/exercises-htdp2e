@@ -1,8 +1,8 @@
 Design Recipe
 =============
 
-1.- Information as data
------------------------
+1.- Define information as data
+------------------------------
 Choose how to represent the information of the world as data.
 
 For instance::
@@ -14,14 +14,14 @@ For instance::
 
 Data definitions can be:
 - A primitive type (Number, String, Boolean, etc)
-- A structure
+- A structure (which may be based on other structures)
 - An enumeration ("red", "orange" or "green")
 - An interval (Number > -273)
 - An itemization (combination of distinct previous elements: e.g. Number OR Boolean)
 
 
 2.- Write function(s) signature, purpose and function header
----------------------------------------------------------
+------------------------------------------------------------
 A function signature is a description of what data the function consumes, 
 and what data it produces.
 
@@ -72,6 +72,23 @@ can use ``...`` as a placeholder for something that has to be implemented later.
       (... side ...))
 
 
+If any of the inputs is an enumeration, interval or itemization, a check for
+each posible case has to be created in the template. For instance, a function
+to calculate the state of the water depending on its temperature could look
+like this::
+
+    ; Temperature -> String
+    ; Returns a string describing the state of the water
+    (define (water-state temp)
+      (cond 
+        [...condition frozen... ...value when frozen...]
+        [...condition liquid... ...value when liquid]
+        [...condition gas... ...value when gas]))
+
+If the argument is an itemization of structures, it is probably a good idea to 
+use data selectors here to prevent other functions to handle with the different
+possible data structures. This function here should absorb all the specific details
+of each structure/type/class.
 
 
 5.- Implement template
@@ -82,3 +99,7 @@ the purpose examples. For the square-are example::
     (define (square-area side)
       (sqr side))
 
+6.- Run the tests
+-----------------
+Check that all your requirements are fulfilled, and go back to any of the previous
+points if necessary.
