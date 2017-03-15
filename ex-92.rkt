@@ -4,7 +4,7 @@
 (require 2htdp/universe)
 
 
-(define cham-image (bitmap "../images/cham.png"))
+(define cham-image (bitmap "images/cham.png"))
 (define BACKGROUND-WIDTH 300)
 (define BACKGROUND-HEIGHT 180)
 (define BACKGROUND (empty-scene BACKGROUND-WIDTH BACKGROUND-HEIGHT))
