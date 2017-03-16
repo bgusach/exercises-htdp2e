@@ -26,10 +26,11 @@
 
 ; WorldState KeyEvent -> WorldState
 ; handles the key events
-(define (on-key ws ke)
+(define (on-key-press ws ke)
   (cond
     [(key? ke "...") ...])
-    [else ws])
+    [else ws]
+    )
 
 
 ; WorldState KeyEvent -> WorldState
@@ -47,7 +48,8 @@
 ; WorldState -> Image
 ; renders the last image after the world ended
 (define (render-final ws)
-  (render-world ws))
+  (render-world ws)
+  )
 
 
 (define (main ws)
@@ -56,9 +58,10 @@
     [to-draw render-world]
     [on-key on-key-press]
     [on-tick tock]
-    [stop-when over? render-final]))
+    [stop-when over? render-final]
+    ))
 
 
 ; TEST & MAIN CALL
 (test)
-(main (world ...))
+(main (make-world ...))
