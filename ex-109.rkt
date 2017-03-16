@@ -30,7 +30,6 @@
       [(string=? ws "finished") (make-rectangle "green")]
       [(string=? ws "error") (make-rectangle "red")]
       )
-    
     BACKGROUND
     ))
 
