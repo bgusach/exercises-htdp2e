@@ -36,13 +36,15 @@
 ; WorldState KeyEvent -> WorldState
 ; handles the ticking of the world
 (define (tock ws)
-  ws)
+  ws
+  )
 
 
 ; WorldState -> Boolean
 ; predicate to define when the world comes to an end
 (define (over? ws)
-  #false)
+  #false
+  )
 
 
 ; WorldState -> Image
@@ -59,6 +61,7 @@
     [on-key on-key-press]
     [on-tick tock]
     [stop-when over? render-final]
+    [check-with world?]
     ))
 
 
