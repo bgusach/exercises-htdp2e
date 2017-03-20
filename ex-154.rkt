@@ -1,8 +1,5 @@
 #lang htdp/bsl
 
-(require 2htdp/image)
-(require 2htdp/universe)
-
 ; Note: this data definition is not exactly as suggested in the book
 ; A RD is one of:
 ; - (make-rd String #false)
