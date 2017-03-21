@@ -30,26 +30,26 @@
         )]))
 
 
-; Number Number -> Euro
-; converts the amount of money v given an exchange rate e
-(check-member-of (any-to-€ 2 RATIO-$-to-€) ($-to-€ 2))
+; Dollar Number -> Euro
+; converts the amount of dollar v given an exchange rate e
+(check-member-of ($-to-€* 2 RATIO-$-to-€) ($-to-€ 2))
 
-(define (any-to-€ v e)
-  (* v e))
+(define ($-to-€* d e)
+  (* d e))
 
 
-; List-of-any-currency ExchangeRate -> List-of-euro
-; converts any currency to euros according to the passed rate
+; List-of-Dollar ExchangeRate -> List-of-euro
+; converts a list of dollars into a list of euros according to the passed rate
 (check-member-of (convert-euro* '() RATIO-$-to-€) '())
 (check-member-of (convert-euro* (cons 2 '()) RATIO-$-to-€) (cons ($-to-€ 2) '()))
 
-(define (convert-euro* loc rate)
+(define (convert-euro* lod rate)
   (cond
-    [(empty? loc) '()]
+    [(empty? lod) '()]
     [else
       (cons
-        (any-to-€ (first loc) rate)
-        (convert-euro* (rest loc) rate)
+        ($-to-€* (first lod) rate)
+        (convert-euro* (rest lod) rate)
         )]))
 
 (require test-engine/racket-tests)
