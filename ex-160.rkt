@@ -47,9 +47,9 @@
 (check-expect (in? 5 (set+.L 5 '())) #true)
 (check-expect (in? 5 (set+.L 5 (cons 2 '()))) #true)
 (check-member-of
-    (set+.R 5 (cons 5 '())) 
-    (cons 5 '()) ; 5 is not added again
-    )
+  (set+.R 5 (cons 5 '())) 
+  (cons 5 '()) ; 5 is not added again
+  )
 
 (define (set+.R x s)
   (if
