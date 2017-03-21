@@ -2,7 +2,7 @@
 
 ; ### Constants
 (define RATIO-F2C 5/9)
-(define OFFSET-F2C -32)
+(define OFFSET-F2C 32)
 
 ; ### Data Definitions
 ; Celsius is a Number > -273
@@ -16,7 +16,7 @@
 
 (define (f2c f)
   (*
-    (+ f OFFSET-F2C)
+    (- f OFFSET-F2C)
     RATIO-F2C
     ))
 
