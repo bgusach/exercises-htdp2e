@@ -19,9 +19,8 @@
 (define (inner rd)
   (cond
     [(false? (rd-subdoll rd)) (rd-colour rd)]
-    [else
-      (inner (rd-subdoll rd))
-      ]))
+    [else (inner (rd-subdoll rd))]
+    ))
 
 
 (require test-engine/racket-tests)

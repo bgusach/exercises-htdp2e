@@ -21,14 +21,15 @@
 
 ; WorldState -> Image
 (define (render-world ws)
-  BACKGROUND)
+  BACKGROUND
+  )
 
 
 ; WorldState KeyEvent -> WorldState
 ; handles the key events
 (define (on-key-press ws ke)
   (cond
-    [(key? ke "...") ...])
+    [(key=? ke "...") ...])
     [else ws]
     )
 
