@@ -100,11 +100,26 @@ water depending on its temperature could look like this::
         [...condition gas... ...value when gas]
         ))
 
+If dealing with structure itemizations, it tends to be better to use all data
+selectors in this functions and call other functions passing that info (better
+testability and reusability). But if there are not many different structures, 
+the reusability is not so relevant and may be more comfortable to pass the 
+whole structure to other functions.
 
-If the argument is an itemization of structures, it is probably a good idea to 
-use data selectors here to prevent other functions to handle with the different
-possible data structures. This function here should absorb all the specific details
-of each structure/type/class.
+
+If we are dealing with a recursive data structure, the previous template gets more
+specific::
+
+    ; List-of-numbers -> List-of-numbers
+    (define (recursive-fn lon)
+      (cond
+        [(predicate-for-edge-case? lon) ...]
+        [(predicate-for-recursive-case? lon)  ; or just use else
+         ... (concrete-selector lon) ... ; selector of non recursive data, like first
+         ... (recursive-fn (rest-selector))... ; selector of recursive data, like rest
+        ] ; --> the two previous lines must be merged with a combinator function
+      )
+    )
 
 
 5.- Implement template
