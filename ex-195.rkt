@@ -1,6 +1,10 @@
 #lang htdp/bsl+
 (require 2htdp/batch-io)
 
+; ### Constants
+; NOTE: no need to take a huge dict
+(define DICT (read-lines "short-dictionary"))
+
 ; A Dictionary is one of:
 ; - '()
 ; - (const String Dictionary)
@@ -44,4 +48,19 @@
 
 (require test-engine/racket-tests)
 (test)
+
+
+(write-file 
+  'stdout 
+  (format 
+    "There are ~a words starting with the letter 'a'\n"
+    (starts-with# "a" DICT)
+    ))
+
+(write-file 
+  'stdout 
+  (format 
+    "There are ~a words starting with the letter 'd'\n"
+    (starts-with# "d" DICT)
+    ))
 
