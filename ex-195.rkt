@@ -5,18 +5,16 @@
 ; NOTE: no need to take a huge dict
 (define DICT (read-lines "short-dictionary"))
 
+
+; ### Data Definitions
 ; A Dictionary is one of:
 ; - '()
 ; - (const String Dictionary)
 
-
-; ### Data Definitions
 ; A Letter is one of the following 1Strings: 
 ; – "a"
 ; – ... 
 ; – "z"
-; or, equivalently, a member? of this list: 
-(define LETTERS (explode "abcdefghijklmnopqrstuvwxyz"))
 
 
 ; ### Functions
