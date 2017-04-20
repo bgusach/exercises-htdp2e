@@ -75,7 +75,7 @@ the edge case.
 ------------------
 Create some sort of template of what the body of the function should be.
 For instance, we know the input for a function that calculates the area 
-of an square, and we kinda know that we have to pass this value to another
+of an square, and we kind of know that we have to pass this value to another
 function to actually calculate it, and maybe another argument. Thus, we
 can use ``...`` as a placeholder for something that has to be implemented later.
 
@@ -84,6 +84,10 @@ can use ``...`` as a placeholder for something that has to be implemented later.
     (define (square-area side)
       (... side ...)
       )
+
+Very often makes sense to use auxiliary functions for some tasks. Just pretend
+they are available, and use them (this is the "taking inventory" or "making a wish
+list" part).
 
 
 If any of the inputs is an enumeration, interval or itemization, a check for
@@ -117,9 +121,8 @@ specific::
         [(predicate-for-recursive-case? lon)  ; or just use else
          ... (concrete-selector lon) ... ; selector of non recursive data, like first
          ... (recursive-fn (rest-selector))... ; selector of recursive data, like rest
-        ] ; --> the two previous lines must be merged with a combinator function
-      )
-    )
+         ; --> the two previous lines must be merged with a combinator function
+        ]))
 
 
 5.- Implement template
