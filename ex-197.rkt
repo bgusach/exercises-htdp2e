@@ -1,6 +1,7 @@
 #lang htdp/bsl+
 (require 2htdp/batch-io)
-(require racket/string)
+(require test-engine/racket-tests)
+
 
 ; ### Constants
 ; NOTE: no need to take a huge dict
@@ -23,6 +24,46 @@
 
 
 ; ### Functions
+
+; Dictionary -> Letter
+; Returns the most frequent first word letter from a non-empty dictionary
+(check-expect (most-frequent (list "lol" "troll" "tunnel" "cod")) "t")
+(define (most-frequent dict)
+  (lc-letter
+    (max-freq-from-lolc
+      (count-by-letter dict LETTERS)
+      )))
+
+
+; List-of-letter-count -> Letter-Count
+; Returns the letter-count of the list with the greatest frequency
+(check-expect 
+  (max-freq-from-lolc (list (make-lc "a" 10) (make-lc "b" 3)))
+  (make-lc "a" 10)
+  )
+(define (max-freq-from-lolc lolc)
+  (cond
+    [(empty? (rest lolc)) (first lolc)]
+    [else 
+      (max-freq-lc 
+        (first lolc) 
+        (max-freq-from-lolc (rest lolc))
+        )]))
+
+
+; Letter-Count Letter-Count -> Letter-Count
+; Given two Letter-Counts, it returns the one with the greatest frequency
+(check-expect 
+  (max-freq-lc (make-lc "a" 10) (make-lc "b" 3))
+  (make-lc "a" 10)
+  )
+(define (max-freq-lc a b)
+  (if 
+    (>= (lc-count a) (lc-count b))
+    a
+    b
+    ))
+
 
 ; Dictionary List-of-letters -> List-of-Letter-Count
 ; Given a dictionary, it returs a list of Letter-Count with the frequencies
@@ -78,27 +119,9 @@
   )
 
 
-(require test-engine/racket-tests)
 (test)
-
-
-(define (format-lolc lolc) 
-  (cond
-    [(empty? lolc) '()]
-    [else
-      (cons
-        (format "~s: ~a" (lc-letter (first lolc)) (lc-count (first lolc)))
-        (format-lolc (rest lolc))
-        )]))
-
 
 (write-file 
   'stdout 
-  (string-append 
-    "Frequencies of first letters in dict:\n"
-    (string-join 
-      (format-lolc (count-by-letter DICT LETTERS))
-      "\n"
-      )
-    "\n"
-    ))
+  (format "The most frequent first letter is: ~a\n\n" (most-frequent DICT))
+  )
