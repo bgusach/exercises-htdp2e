@@ -65,7 +65,7 @@
 (define (render-poly-v2 img poly)
   (connect-dots 
     img 
-    (cons (last poly) poly)
+    (add-at-end poly (first poly))
     ))
 
 
