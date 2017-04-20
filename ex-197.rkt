@@ -37,6 +37,11 @@
 
 ; List-of-letter-count -> Letter-Count
 ; Returns the letter-count of the list with the greatest frequency
+; 
+; NOTE: the exercise suggests either picking the maximum freq. or sorting
+; the list and then getting the first/last value. The former is simpler 
+; to implement and O(n), whereas the latter is more messy and can't be 
+; done in O(n) ... if I knew how I would be rich lol
 (check-expect 
   (max-freq-from-lolc (list (make-lc "a" 10) (make-lc "b" 3)))
   (make-lc "a" 10)
