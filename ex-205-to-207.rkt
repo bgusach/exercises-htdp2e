@@ -120,9 +120,33 @@
 
 
 ; ==================== Exercise 207 ====================
+; LLists -> Number
+(check-expect 
+  (total-time/list llist)
+  (+ 
+    (find-association "time" lassoc1 0)
+    (find-association "time" lassoc2 0)
+    (find-association "time" lassoc3 0)
+    (find-association "time" lassoc4 0)
+    ))
+(define (total-time/list llist)
+  (cond
+    [(empty? llist) 0]
+    [else 
+      (+
+        (find-association "time" (first llist) 0)
+        (total-time/list (rest llist))
+        )]))
 
+; Since I am not testing with a real itunes playlist XML, I cannot tell
+; why the results differs from that of ex. 200, but my guess is that
+; some XML subnodes were not complete enough to generate a Track structure
+; and therefore were not read by read-itunes-as-tracks. Those nodes, however,
+; had a play time and are summed up in the list version
 
 ; =================== End of exercise ==================
+
+
 
 
 (test)
