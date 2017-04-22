@@ -94,10 +94,10 @@
 ; LTracks -> List-of-Strings
 ; Returns all albums titles from list of tracks. Repeated albums will show up only once
 (check-expect 
-  (select-all-album-titles/unique track-list)
+  (select-album-titles/unique track-list)
   (list "Once upon a time" "My last album")
   )
-(define (select-all-album-titles/unique track-list)
+(define (select-album-titles/unique track-list)
   (remove-repeated-strings 
     (select-all-album-titles track-list)
     ))
