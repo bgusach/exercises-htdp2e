@@ -110,6 +110,12 @@
         (total-time (rest track-list))
         )]))
 
+; NOTE: the exercise suggests to source data from an external XML file, 
+; but I don't have one and to me it is not an interesting thing to do. 
+; If you want to do it, just use the following lines:
+; (require 2htdp/batch-io)
+; (total-time (read-itunes-as-tracks "path-to-your-library"))
+
 ; =================== End of exercise ==================
 
 
