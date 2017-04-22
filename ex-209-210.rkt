@@ -2,7 +2,7 @@
 
 (require test-engine/racket-tests)
 
-; ==================== Exercise xxx ====================
+; ==================== Exercise 209 ====================
 ; ### Data Definitions
 ; A Word is one of:
 ; - '()
@@ -50,22 +50,28 @@
   )
 
 
-; List-of-words -> List-of-strings
-; Turn all Words in low into Strings 
-(check-expect 
-  (words->strings (list (list "h" "e" "y") (list "y" "o")))
-  (list "hey" "yo")
+; String -> Word
+; Turns the string s into a Word
+(check-expect (string->word "hola") (list "h" "o" "l" "a"))
+(define (string->word s)
+  (explode s)
   )
-(define (words->strings low) 
-  (cond 
-    [(empty? low) '()]
-    [else 
-      (cons 
-        (implode (first low))
-        (words->strings (rest low))
-        )]))
- 
 
+
+; Word -> String
+; Turns the Word w into a String
+(check-expect (word->string (list "h" "o" "l" "a")) "hola")
+(define (word->string w)
+  (implode w)
+  )
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 210 ====================
+; ### Functions
 ; List-of-strings -> List-of-words
 ; Turns Strings into Words
 (check-expect 
@@ -82,9 +88,20 @@
         )]))
 
 
-(define (string->word s)
-  (explode s)
+; List-of-words -> List-of-strings
+; Turn all Words in low into Strings 
+(check-expect 
+  (words->strings (list (list "h" "e" "y") (list "y" "o")))
+  (list "hey" "yo")
   )
+(define (words->strings low) 
+  (cond 
+    [(empty? low) '()]
+    [else 
+      (cons 
+        (implode (first low))
+        (words->strings (rest low))
+        )]))
 
 ; =================== End of exercise ==================
 
