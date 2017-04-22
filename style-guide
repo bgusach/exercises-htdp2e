@@ -1,10 +1,9 @@
-; ==================== Exercise xxx ====================
-; =================== End of exercise ==================
-+ 4 break lines
-
-
 2 empty lines between function definitions
 0 empty lines between function header, tests and body
+4 empty lines between exercises
 
+Wrap exercises within:
+; ==================== Exercise xxx ====================
+; =================== End of exercise ==================
 
-requires at the beginning 
+(requires ...) at the beginning 

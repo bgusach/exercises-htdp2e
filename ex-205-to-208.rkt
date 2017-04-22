@@ -18,7 +18,7 @@
 ; An LAssoc is one of: 
 ; – '()
 ; – (cons Association LAssoc)
-; For example (same data-examples as previous exercises):
+; For example (based on data-examples from previous exercises):
 (define 
   lassoc1 
   (list
@@ -30,6 +30,8 @@
     (list "added" (create-date 2015 6 3 12 30 30))
     (list "play#" 42)
     (list "played" (create-date 2017 9 2 21 45 15))
+    (list "is-crappy-song" #true)
+    (list "videoclip-has-boobies" #false)
     ))
 
 (define 
@@ -43,6 +45,7 @@
     (list "added" (create-date 2014 7 2 12 0 0))
     (list "play#" 93)
     (list "played" (create-date 2017 9 3 21 0 0))
+    (list "sung-in-public" #false)
     ))
 
 (define 
@@ -69,6 +72,7 @@
     (list "added" (create-date 1998 3 2 12 1 0))
     (list "play#" 600)
     (list "played" (create-date 2016 9 1 21 0 0))
+    (list "drinking-song" #true)
     ))
 
 
@@ -147,6 +151,43 @@
 ; =================== End of exercise ==================
 
 
+
+
+; ==================== Exercise 208 ====================
+; LLists -> List-of-strings
+; Returns a list of attributes of type boolean. Duplicates may appear.
+(check-expect 
+  (boolean-attributes llist) 
+  (list 
+    "is-crappy-song"
+    "videoclip-has-boobies"
+    "sung-in-public"
+    "drinking-song"
+    ))
+(define (boolean-attributes llist)
+  (cond
+   [(empty? llist) '()]
+   [else
+     (append
+       (get-boolean-keys (first llist))
+       (boolean-attributes (rest llist))
+       )]))
+
+
+; LAssoc -> List-of-strings
+; Given a LAssoc, it returns the keys of the boolean values
+(define (get-boolean-keys lassoc)
+  (cond
+    [(empty? lassoc) '()]
+    [(boolean? (second (first lassoc)))
+     (cons
+       (first (first lassoc))
+       (get-boolean-keys (rest lassoc))
+       )]
+    [else (get-boolean-keys (rest lassoc))]
+    ))
+
+; =================== End of exercise ==================
 
 
 (test)
