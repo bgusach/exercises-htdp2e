@@ -129,9 +129,14 @@
 ; ### Functions
 ; Word -> List-of-words
 (check-satisfied (arrangements (list "d" "e")) all-de-permutations?)
+(check-expected (arrangements '()) '())
 (define (arrangements w)
-  '()
-  )
+  (cond
+    [(empty? w) '()]
+    [else
+      ... (first w) ...
+      ... (arrangements (rest w))...
+      ]))
 
 
 (define (all-de-permutations? low)
