@@ -74,6 +74,27 @@
 
 
 
+
+; ==================== Exercise 200 ====================
+; ### Functions
+
+; LTracks -> Number
+; Calculates the total amount of play time of a track list
+(check-expect (total-time track-list) (+ (track-time track1) (track-time track2) (track-time track3)))
+(define (total-time track-list)
+  (cond
+    [(empty? track-list) 0]
+    [else
+      (+
+        (track-time (first track-list))
+        (total-time (rest track-list))
+        )]))
+
+; =================== End of exercise ==================
+
+
+
+
 ; ==================== Exercise 201 ====================
 ; ### Functions
 ; LTracks -> List-of-Strings
