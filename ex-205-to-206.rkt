@@ -1,5 +1,8 @@
 #lang htdp/bsl+
 
+(require 2htdp/itunes)
+(require test-engine/racket-tests)
+
 
 ; ==================== Exercise 205 ====================
 ; ### Data Definitions
@@ -80,6 +83,23 @@
 
 
 
-(require test-engine/racket-tests)
+; ==================== Exercise 206 ====================
+; String LAssoc Any -> Any
+; Given a LAssoc and a key, it returns the value if key pressent in the lassoc
+; otherwise it returns the default
+(check-expect (find-association "name" lassoc4 "default") (second (first lassoc4)))
+(check-expect (find-association "non-existing-key" lassoc4 "default") "default")
+(define (find-association key lassoc default)
+  (cond
+    [(empty? lassoc) default]
+    [(string=? (first (first lassoc)) key) (second (first lassoc))]
+    [else (find-association key (rest lassoc) default)]
+    ))
+
+; =================== End of exercise ==================
+
+
+
+
 (test)
 
