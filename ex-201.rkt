@@ -90,11 +90,33 @@
         (select-all-album-titles (rest track-list))
         )]))
 
+
+; LTracks -> List-of-Strings
+; Returns all albums titles from list of tracks. Repeated albums will show up only once
+(check-expect 
+  (select-all-album-titles/unique track-list)
+  (list "Once upon a time" "My last album")
+  )
+(define (select-all-album-titles/unique track-list)
+  (remove-repeated-strings 
+    (select-all-album-titles track-list)
+    ))
+
+
+; List-of-strings -> List-of-strings
+; Removes duplicated strings from a list
+(define (remove-repeated-strings los)
+  (cond
+    [(empty? los) '()]
+    [(member (first los) (rest los)) 
+     (remove-repeated-strings (rest los))]
+    [else 
+      (cons
+        (first los)
+        (remove-repeated-strings (rest los))
+        )]))
+
+
 (require test-engine/racket-tests)
 (test)
 
-; NOTE: the exercise suggests to source data from an external XML file, but I don't have one
-; and to me it is not an interesting thing to do. If you want to do it, just use the following 
-; lines:
-; (require 2htdp/batch-io)
-; (total-time (read-itunes-as-tracks "path-to-your-library"))
