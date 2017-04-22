@@ -2,6 +2,7 @@
 
 (require 2htdp/itunes)
 
+; ==================== Exercise 199 ====================
 ; ### Data Definitions
 
 ; A Date is a structure:
@@ -66,11 +67,27 @@
     (create-date 2017 9 3 21 0 0)
     ))
 
+
+(define 
+  track4
+  (create-track
+    "Me missus, me dosh and me"
+    "Marieta Marieta"
+    "My previous album"
+    (* 90 1000)
+    1
+    (create-date 1998 3 2 12 1 0)
+    600
+    (create-date 2016 9 1 21 0 0)
+    ))
+
 ; A LTracks is one of:
 ; - '()
 ; - (cons Track LTracks)
 ; Example:
-(define track-list (list track1 track2 track3))
+(define track-list (list track1 track2 track3 track4))
+
+; =================== End of exercise ==================
 
 
 
@@ -80,7 +97,10 @@
 
 ; LTracks -> Number
 ; Calculates the total amount of play time of a track list
-(check-expect (total-time track-list) (+ (track-time track1) (track-time track2) (track-time track3)))
+(check-expect 
+  (total-time track-list) 
+  (+ (track-time track1) (track-time track2) (track-time track3) (track-time track4))
+  )
 (define (total-time track-list)
   (cond
     [(empty? track-list) 0]
@@ -101,7 +121,7 @@
 ; Returns all albums titles from list of tracks. Repeated albums will show up multiple times
 (check-expect 
   (select-all-album-titles track-list)
-  (list "Once upon a time" "Once upon a time" "My last album")
+  (list "Once upon a time" "Once upon a time" "My last album" "My previous album")
   )
 (define (select-all-album-titles track-list)
   (cond
@@ -117,7 +137,7 @@
 ; Returns all albums titles from list of tracks. Repeated albums will show up only once
 (check-expect 
   (select-album-titles/unique track-list)
-  (list "Once upon a time" "My last album")
+  (list "Once upon a time" "My last album" "My previous album")
   )
 (define (select-album-titles/unique track-list)
   (remove-repeated-strings 
@@ -232,6 +252,7 @@
   (list
     (list track1 track2)
     (list track3)
+    (list track4)
     ))
 (define (select-albums track-list)
   (select-tracks-by-albums (select-album-titles/unique track-list) track-list)
