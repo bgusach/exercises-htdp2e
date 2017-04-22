@@ -3,16 +3,6 @@
 (require test-engine/racket-tests)
 
 ; ==================== Exercise 209 ====================
-; ### Data Definitions
-; A Word is one of:
-; - '()
-; - (const 1-String Word)
- 
-; A List-of-words is one of:
-; - '()
-; - (Word List-of-words)
- 
-
 ; ### Functions
 ; String -> Boolean
 ; Function for testing purposes
@@ -35,19 +25,6 @@
         (string->word s)
         ))))
 
-
-; List-of-strings -> List-of-strings
-; Filters out non valid strings, i.e. strings that do not appead in the dict
-(define (in-dictionary los)
-  '()
-  )
- 
-
-; Word -> List-of-words
-; Find all re-arrangements of word
-(define (arrangements word)
-  (list word)
-  )
 
 
 ; String -> Word
@@ -105,6 +82,66 @@
 
 ; =================== End of exercise ==================
 
+
+
+; ==================== Exercise 211 ====================
+; ### Constants
+(define 
+  DICT 
+  (list "art" "act" "brother" "cat" "dog" "god" "rat" "tar")
+  )  ; Ignorance is bliss =)
+
+
+; ### Functions
+; List-of-strings -> List-of-strings
+(check-expect (in-dictionary (list "hello" "cat")) (list "cat"))
+(define (in-dictionary los)
+  (cond
+    [(empty? los) '()]
+    [(member (first los) DICT) (cons (first los) (in-dictionary (rest los)))]
+    [else (in-dictionary (rest los))]
+    ))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 212 ====================
+; ### Data Definitions
+; A Word is one of:
+; - '()
+; - (const 1-String Word)
+;
+; For example:
+(define word1 (list "c" "a" "t"))
+(define word2 (list "d" "o" "g"))
+ 
+
+; A List-of-words is one of:
+; - '()
+; - (Word List-of-words)
+;
+; For example:
+(define low (list word1 word2))
+
+
+; ### Functions
+; Word -> List-of-words
+(check-satisfied (arrangements (list "d" "e")) all-de-permutations?)
+(define (arrangements w)
+  '()
+  )
+
+
+(define (all-de-permutations? low)
+  (and
+    (= (length low) 2)
+    (member (list "e" "d") low)
+    (member (list "d" "e") low)
+    ))
+
+; =================== End of exercise ==================
 
 (test)
 
