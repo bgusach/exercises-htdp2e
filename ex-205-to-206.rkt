@@ -96,9 +96,33 @@
     [else (find-association key (rest lassoc) default)]
     ))
 
+
+; Alternative implementation of find-association based on assoc
+(check-expect (find-association-v2 "name" lassoc4 "default") (second (first lassoc4)))
+(check-expect (find-association-v2 "non-existing-key" lassoc4 "default") "default")
+(define (find-association-v2 key lassoc default)
+  (value-or-default (assoc key lassoc) default)
+  )
+
+
+; Assoc|Boolean Any -> Any
+; If given an Assoc structure, it returns its value. If #false passed, default is returned
+(define (value-or-default pair default)
+  (if 
+    (false? pair)
+    default
+    (second pair)
+    ))
+
 ; =================== End of exercise ==================
 
 
+
+
+; ==================== Exercise 207 ====================
+
+
+; =================== End of exercise ==================
 
 
 (test)
