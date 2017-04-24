@@ -128,11 +128,12 @@
 
 ; ### Functions
 ; Word -> List-of-words
+; Calculates all the letter-permutations of w
 ; (check-satisfied (arrangements (list "d" "e")) all-de-permutations?)
-(check-expect (arrangements '()) '())
+; (check-expect (arrangements '()) '())
 (define (arrangements w)
   (cond
-    [(empty? w) '()]
+    [(empty? w) (list '())]
     [else
       (insert-everywhere/in-all-words
         (first w)
@@ -140,6 +141,7 @@
         )]))
 
 
+; Test function for arrangements
 (define (all-de-permutations? low)
   (and
     (= (length low) 2)
@@ -153,9 +155,16 @@
 
 
 ; ==================== Exercise 213 ====================
+; ### Constants
+(define empty-word '())
+
 ; ### Functions
 ; 1-String List-of-words -> List-of-words
 ; Inserts the letter into all positions of all words
+(check-expect 
+  (insert-everywhere/in-all-words "a" (list empty-word))
+  (list (string->word "a"))
+  )
 ; (check-expect
 ;   (insert-everywhere/in-all-words "a" (list (list "b" "c") (list "h" "o")))
 ;   (list
@@ -166,7 +175,7 @@
   (cond
     [(empty? low) '()]
     [else 
-      (cons  ; use append later
+      (append
        (insert-everywhere letter (first low))
        (insert-everywhere/in-all-words letter (rest low))
        )]))
@@ -175,21 +184,36 @@
 ; 1-String Word -> List-of-words
 ; Returns a list of words where the letter has been inserted in all
 ; possible positions of the word
+(check-expect (insert-everywhere "a" '()) (list (list "a")))
 (check-expect 
-  (insert-everywhere "a" (list "b" "c"))
+  (insert-everywhere "a" (string->word "b"))
+  (list 
+    (string->word "ab")
+    (string->word "ba")
+    ))
+(check-expect 
+  (insert-everywhere "a" (string->word "bc"))
   (list
-    (list "a" "b" "c")
-    (list "b" "a" "c")
-    (list "b" "c" "a")
+    (string->word "abc")
+    (string->word "bac")
+    (string->word "bca")
     ))
 (define (insert-everywhere letter word)
+  (chain-insert-word '() letter word)
+  )
+
+
+(define (chain-insert-word head letter tail)
   (cond
-    [(empty? word) (list letter)]
+    [(empty? tail) (append head (list letter))]
     [else
-      (cons 
-        (cons letter word)
-        (insert-everywhere letter (rest word))
-        )]))
+      (append
+        (append head (list letter) tail)
+        (chain-insert-word
+          (cons head (first tail))
+          letter
+          (rest tail)
+          ))]))
 
 ; =================== End of exercise ==================
 
