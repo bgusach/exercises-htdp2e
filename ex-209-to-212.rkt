@@ -128,7 +128,7 @@
 
 ; ### Functions
 ; Word -> List-of-words
-(check-satisfied (arrangements (list "d" "e")) all-de-permutations?)
+; (check-satisfied (arrangements (list "d" "e")) all-de-permutations?)
 (check-expect (arrangements '()) '())
 (define (arrangements w)
   (cond
@@ -148,6 +148,51 @@
     ))
 
 ; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 213 ====================
+; ### Functions
+; 1-String List-of-words -> List-of-words
+; Inserts the letter into all positions of all words
+; (check-expect
+;   (insert-everywhere/in-all-words "a" (list (list "b" "c") (list "h" "o")))
+;   (list
+;     (list (list "a" "b" "c") (list "b" "a" "c") (list "b" "c" "a"))
+;     (list (list "a" "h" "o") (list "h" "a" "o") (list "h" "o" "a"))
+;     ))
+(define (insert-everywhere/in-all-words letter low)
+  (cond
+    [(empty? low) '()]
+    [else 
+      (cons  ; use append later
+       (insert-everywhere letter (first low))
+       (insert-everywhere/in-all-words letter (rest low))
+       )]))
+
+
+; 1-String Word -> List-of-words
+; Returns a list of words where the letter has been inserted in all
+; possible positions of the word
+(check-expect 
+  (insert-everywhere "a" (list "b" "c"))
+  (list
+    (list "a" "b" "c")
+    (list "b" "a" "c")
+    (list "b" "c" "a")
+    ))
+(define (insert-everywhere letter word)
+  (cond
+    [(empty? word) (list letter)]
+    [else
+      (cons 
+        (cons letter word)
+        (insert-everywhere letter (rest word))
+        )]))
+
+; =================== End of exercise ==================
+
 
 (test)
 
