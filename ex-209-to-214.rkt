@@ -228,7 +228,7 @@
 
     [else
       (append
-        (list (append acc-pre (list element) acc-post))
+        (list (append acc-pre (cons element acc-post)))
         (distribute
           (append acc-pre (list (first acc-post)))
           element
