@@ -27,7 +27,6 @@
         ))))
 
 
-
 ; String -> Word
 ; Turns the string s into a Word
 (check-expect (string->word "hola") (list "h" "o" "l" "a"))
