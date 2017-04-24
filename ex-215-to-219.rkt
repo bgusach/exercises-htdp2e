@@ -45,11 +45,11 @@
 
 
 (define (render-element pos col img)
-  (overlay/offset
-    (square TILE-WIDTH "solid" SNAKE-COLOUR)  ; Squares look more retro =)
-    (posn-x pos)
-    (posn-y pos)
+  (underlay/xy
     img
+    (* (posn-x pos) TILE-WIDTH)
+    (* (posn-y pos) TILE-WIDTH)
+    (square TILE-WIDTH "solid" SNAKE-COLOUR)  ; Squares look more retro =)
     ))
 
 
@@ -77,10 +77,10 @@
 ; Translates the pos one unit according to the direction
 (define (translate-pos pos dir)
   (cond
-    [(string=? dir "up") (make-posn (posn-x pos) (+ (posn-y pos) TILE-WIDTH))]
-    [(string=? dir "down") (make-posn (posn-x pos) (- (posn-y pos) TILE-WIDTH))]
-    [(string=? dir "left") (make-posn (+ (posn-x pos) TILE-WIDTH) (posn-y pos))]
-    [(string=? dir "right") (make-posn (- (posn-x pos) TILE-WIDTH) (posn-y pos))]
+    [(string=? dir "up") (make-posn (posn-x pos) (- (posn-y pos) 1))]
+    [(string=? dir "down") (make-posn (posn-x pos) (+ (posn-y pos) 1))]
+    [(string=? dir "left") (make-posn (- (posn-x pos) 1) (posn-y pos))]
+    [(string=? dir "right") (make-posn (+ (posn-x pos) 1) (posn-y pos))]
     ))
 
 
@@ -92,7 +92,55 @@
     [on-tick tock 0.1]
     ))
 
-(main (make-world (make-posn 0 0) "down"))
+
+; (main (make-world (make-posn 0 0) "down"))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 216 ====================
+; ### Functions
+; WorldState -> Boolean
+(define (over? ws)
+  (hitting-wall? (world-pos ws))
+  )
+
+
+; Posn -> Boolean
+; Returns whether the posn is hitting a wall
+(define (hitting-wall? pos)
+  (or
+    (negative? (posn-x pos))
+    (negative? (posn-y pos))
+    (>= (posn-x pos) TILES-PER-SIDE)
+    (>= (posn-y pos) TILES-PER-SIDE)
+    ))
+
+
+; WorldState -> Image
+; renders the last image after the world ended
+(define (render-final ws)
+  (overlay/align
+    "left"
+    "bottom"
+    (text "Bro, you hit the wall!" 24 "black")
+    (render-world ws)
+    ))
+
+
+(define (main-v2 ws)
+  (big-bang 
+    ws
+    [to-draw render-world]
+    [on-key on-key-press]
+    [on-tick tock 0.1]
+    [stop-when over? render-final]
+    ))
+
+
+(main-v2 (make-world (make-posn 0 0) "down"))
 
 ; =================== End of exercise ==================
 
