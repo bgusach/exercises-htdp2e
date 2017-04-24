@@ -4,20 +4,20 @@
 (require 2htdp/universe)
 (require test-engine/racket-tests)
 
-; CONSTANTS
+; ### Constants
 (define BACKGROUND-WIDTH 300)
 (define BACKGROUND-HEIGHT 200)
 (define BACKGROUND (empty-scene BACKGROUND-WIDTH BACKGROUND-HEIGHT))
 
 
-; DATA DEFINITIONS
+; ### Data Definitions
 
 ; WorldState is a structure (world ...)
 ; interpretation:
 (define-struct world [...])
 
 
-; FUNCTIONS
+; ### Functions
 
 ; WorldState -> Image
 (define (render-world ws)
@@ -66,6 +66,5 @@
     ))
 
 
-; TEST & MAIN CALL
 (test)
 (main (make-world ...))
