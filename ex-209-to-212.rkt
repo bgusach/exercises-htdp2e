@@ -165,12 +165,12 @@
   (insert-everywhere/in-all-words "a" (list empty-word))
   (list (string->word "a"))
   )
-; (check-expect
-;   (insert-everywhere/in-all-words "a" (list (list "b" "c") (list "h" "o")))
-;   (list
-;     (list (list "a" "b" "c") (list "b" "a" "c") (list "b" "c" "a"))
-;     (list (list "a" "h" "o") (list "h" "a" "o") (list "h" "o" "a"))
-;     ))
+(check-expect
+  (insert-everywhere/in-all-words "a" (list (list "b" "c") (list "h" "o")))
+  (list
+    (list "a" "b" "c") (list "b" "a" "c") (list "b" "c" "a")
+    (list "a" "h" "o") (list "h" "a" "o") (list "h" "o" "a")
+    ))
 (define (insert-everywhere/in-all-words letter low)
   (cond
     [(empty? low) '()]
@@ -184,7 +184,7 @@
 ; 1-String Word -> List-of-words
 ; Returns a list of words where the letter has been inserted in all
 ; possible positions of the word
-(check-expect (insert-everywhere "a" '()) (list (list "a")))
+(check-expect (insert-everywhere "a" empty-word) (list (list "a")))
 (check-expect 
   (insert-everywhere "a" (string->word "b"))
   (list 
@@ -199,21 +199,27 @@
     (string->word "bca")
     ))
 (define (insert-everywhere letter word)
-  (chain-insert-word '() letter word)
+  (distribute empty-word letter word)
   )
 
 
-(define (chain-insert-word head letter tail)
-  (cond
-    [(empty? tail) (append head (list letter))]
+; List-of-any Any List-of-any -> List-of-list-of-any
+; Helper function to insert element in all the positions
+; of acc-post, "prefixed" with acc-pre.
+(define (distribute acc-pre element acc-post)
+  (cond 
+    [(empty? acc-post) 
+     (list (append acc-pre (list element)))
+     ]
+
     [else
       (append
-        (append head (list letter) tail)
-        (chain-insert-word
-          (cons head (first tail))
-          letter
-          (rest tail)
-          ))]))
+        (list (append acc-pre (list element) acc-post))
+        (distribute
+          (append acc-pre (list (first acc-post)))
+          element
+          (rest acc-post))
+        )]))
 
 ; =================== End of exercise ==================
 
