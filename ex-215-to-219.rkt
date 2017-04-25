@@ -9,10 +9,12 @@
 
 ; ==================== Exercise 215 ====================
 ; ### Constants
-(define TILES-PER-SIDE 30)
+(define X-TILES 40)
+(define Y-TILES 30)
 (define TILE-WIDTH 10)
-(define BACKGROUND-WIDTH (* TILE-WIDTH TILES-PER-SIDE))
-(define BACKGROUND (empty-scene BACKGROUND-WIDTH BACKGROUND-WIDTH))
+(define BACKGROUND-WIDTH (* TILE-WIDTH X-TILES))
+(define BACKGROUND-HEIGHT (* TILE-WIDTH Y-TILES))
+(define BACKGROUND (empty-scene BACKGROUND-WIDTH BACKGROUND-HEIGHT))
 (define SNAKE-COLOUR "red")
 
 
@@ -138,7 +140,7 @@
       (string=? dir d-left)
       )
     (and 
-      (= (posn-x pos) (sub1 TILES-PER-SIDE))
+      (= (posn-x pos) (sub1 X-TILES))
       (string=? dir d-right)
       )
     (and 
@@ -146,7 +148,7 @@
       (string=? dir d-up)
       )
     (and 
-      (= (posn-y pos) (sub1 TILES-PER-SIDE))
+      (= (posn-y pos) (sub1 Y-TILES))
       (string=? dir d-down)
       )))
 
