@@ -205,6 +205,7 @@
     (drop-last trail)
     ))
 
+
 ; Non-empty-list-of-anything -> Anything
 ; Returns the last element of a non empty list
 (check-expect (last (list 1 2 3)) 3)
@@ -248,7 +249,62 @@
     [on-tick tock-v3 0.1]
     ))
 
-(main-v3 (make-world-v3 (list (make-posn 2 0) (make-posn 1 0) (make-posn 0 0)) "down"))
+; (main-v3 (make-world-v3 (list (make-posn 2 0) (make-posn 1 0) (make-posn 0 0)) "down"))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 218 ====================
+; suffix for new versions: -v4
+
+; ### Constants
+(define running "running")
+(define hit-wall "hit-wall")
+(define hit-itself "hit-itself")
+
+; ### Data Definitions
+; GameStatus is one of:
+; - running
+; - hit-wall
+; - hit-itself
+
+
+; WorldState is a structure (make-world Direction Trail GameStatus)
+; Interpretation: the snake is placed in trail 
+; and moves to direct
+(define-struct world-v4 [trail direct status])
+
+
+; WorldState -> Boolean
+(define (over? ws)
+  (not (string?= (world-v4-status ws)))
+  )
+
+
+; WorldState KeyEvent -> WorldState
+; handles the key events
+(define (on-key-press-v4 ws ke)
+  (make-world
+    (world-v4-trail ws)
+    (cond
+      [(member ke DIRECTIONS) ke]
+      [else (world-v4-direct ws)]
+      )
+    (world-v4-status ws)
+    ))
+
+
+(define (main-v4 ws)
+  (big-bang 
+    ws
+    [to-draw render-world-v4]
+    [on-key on-key-press-v4]
+    [on-tick tock-v3 0.1]
+    ))
+
+; (main-v3 (make-world-v3 (list (make-posn 2 0) (make-posn 1 0) (make-posn 0 0)) "down"))
 
 ; =================== End of exercise ==================
 
