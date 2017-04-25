@@ -4,7 +4,7 @@
 (require 2htdp/universe)
 (require test-engine/racket-tests)
 
-; NOTE: when an exercise improves a previously existing function,
+; NOTE: when an exercise modifies a previously existing function,
 ; a new version name will be used, like *-v2
 
 ; ==================== Exercise 215 ====================
@@ -101,6 +101,8 @@
 
 
 ; ==================== Exercise 216 ====================
+; suffix for new versions: -v2
+
 ; ### Functions
 ; WorldState -> Boolean
 (define (over? ws)
@@ -186,16 +188,22 @@
 ; handles the ticking of the world
 (define (tock-v3 ws)
   (make-world-v3
-    (cons
-      (translate-pos 
-        (last (world-v3-trail ws))
-        (world-v3-direct ws)
-        )
-      (drop-last (world-v3-trail ws))
-      )
+    (move-trail (world-v3-trail ws) (world-v3-direct ws))
     (world-v3-direct ws)
     ))
 
+
+; Trail Direction -> Trail
+; Moves the trail one unit in the passed direction
+(check-expect 
+  (move-trail (list (make-posn 10 0) (make-posn 9 0)) "down")
+  (list (make-posn 10 1) (make-posn 10 0))
+  )
+(define (move-trail trail direction)
+  (cons 
+    (translate-pos (first trail) direction)
+    (drop-last trail)
+    ))
 
 ; Non-empty-list-of-anything -> Anything
 ; Returns the last element of a non empty list
@@ -210,6 +218,7 @@
 
 ; Non-empty-list-of-anything -> List-of-anything
 ; Drops the last element of a non empty list loa
+(check-expect (drop-last (list 1 2 3)) (list 1 2))
 (define (drop-last loa)
   (cond
     [(empty? (rest loa)) '()]
@@ -220,11 +229,22 @@
         )]))
 
 
+; WorldState KeyEvent -> WorldState
+; handles the key events
+(define (on-key-press-v3 ws ke)
+  (make-world-v3
+    (world-v3-trail ws)
+    (cond
+      [(member ke DIRECTIONS) ke]
+      [else (world-v3-direct ws)]
+      )))
+
+
 (define (main-v3 ws)
   (big-bang 
     ws
     [to-draw render-world-v3]
-    [on-key on-key-press]
+    [on-key on-key-press-v3]
     [on-tick tock-v3 0.1]
     ))
 
