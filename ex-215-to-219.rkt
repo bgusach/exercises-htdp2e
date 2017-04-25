@@ -140,7 +140,95 @@
     ))
 
 
-(main-v2 (make-world (make-posn 0 0) "down"))
+; (main-v2 (make-world (make-posn 0 0) "down"))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 217 ====================
+; suffix for new versions: -v3
+
+; ### Data Definitions
+; Trail is one of:
+; - (cons Posn '())
+; - (cons Posn Trail)
+; Interpretation: non empty list of Posns that represent
+; all the positions the snake is using
+
+
+; WorldState is a structure (make-world Direction Trail)
+; Interpretation: the snake is placed in trail 
+; and moves to direct
+(define-struct world-v3 [trail direct])
+
+
+(define (render-world-v3 ws)
+  (render-trail
+    (world-v3-trail ws)
+    BACKGROUND
+    ))
+
+
+; Trail Image -> Image
+(define (render-trail trail img)
+  (cond
+    [(empty? trail) img]
+    [else
+      (render-trail 
+        (rest trail) 
+        (render-element (first trail) SNAKE-COLOUR img)
+        )]))
+
+
+; WorldState KeyEvent -> WorldState
+; handles the ticking of the world
+(define (tock-v3 ws)
+  (make-world-v3
+    (cons
+      (translate-pos 
+        (last (world-v3-trail ws))
+        (world-v3-direct ws)
+        )
+      (drop-last (world-v3-trail ws))
+      )
+    (world-v3-direct ws)
+    ))
+
+
+; Non-empty-list-of-anything -> Anything
+; Returns the last element of a non empty list
+(check-expect (last (list 1 2 3)) 3)
+(check-expect (last (list 1)) 1)
+(define (last loa)
+  (cond
+    [(empty? (rest loa)) (first loa)]
+    [else (last (rest loa))]
+    ))
+
+
+; Non-empty-list-of-anything -> List-of-anything
+; Drops the last element of a non empty list loa
+(define (drop-last loa)
+  (cond
+    [(empty? (rest loa)) '()]
+    [else
+      (cons
+        (first loa)
+        (drop-last (rest loa))
+        )]))
+
+
+(define (main-v3 ws)
+  (big-bang 
+    ws
+    [to-draw render-world-v3]
+    [on-key on-key-press]
+    [on-tick tock-v3 0.1]
+    ))
+
+(main-v3 (make-world-v3 (list (make-posn 2 0) (make-posn 1 0) (make-posn 0 0)) "down"))
 
 ; =================== End of exercise ==================
 

@@ -66,5 +66,6 @@
     ))
 
 
+; TEST & MAIN CALL
 (test)
 (main (make-world ...))
