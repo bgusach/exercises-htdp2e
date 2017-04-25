@@ -342,7 +342,7 @@
         hit-wall
         )]
 
-    [(hitting-itself? (world-v4-trail ws)); (world-direct ws))
+    [(hitting-itself? (world-v4-trail ws) (world-v4-direct ws))
      (make-world-v4
         (world-v4-trail ws)
         (world-v4-direct ws)
@@ -356,11 +356,13 @@
         (world-v4-status ws)
         )]))
 
-; Trail -> Boolean
-; Returns whether the trail is hitting itself
-(define (hitting-itself? trail)
-  (member (first trail) (rest trail))
-  )
+; Trail Direction -> Boolean
+; Returns whether the trail is hitting itself on the next tick
+(define (hitting-itself? trail direction)
+  (member 
+    (translate-pos (first trail) direction)
+    (drop-last (rest trail))
+    ))
 
 
 ; WorldState -> Image
