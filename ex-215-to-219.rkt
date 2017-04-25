@@ -16,13 +16,19 @@
 (define SNAKE-COLOUR "red")
 
 
+; The prefixes are there to avoid clashes with an import
+(define d-up "up")
+(define d-down "down")
+(define d-left "left")
+(define d-right "right")
+
 ; ### Data Definitions
 ; A Direction is one of:
-; - "up"
-; - "down"
-; - "left"
-; - "right"
-(define DIRECTIONS (list "up" "down" "left" "right"))
+; - d-up
+; - d-down
+; - d-left
+; - d-right
+(define DIRECTIONS (list d-up d-down d-left d-right))
 
 
 ; WorldState is a structure (make-world Direction Posn)
@@ -58,10 +64,23 @@
 (define (on-key-press ws ke)
   (make-world
     (world-pos ws)
-    (cond
-      [(member ke DIRECTIONS) ke]
-      [else (world-direct ws)]
-      )))
+    (calculate-new-direction (world-direct ws) ke)
+      ))
+
+
+; Direction KeyEvent -> Direction
+; Given the current direction and a ke event, returns the resulting direction
+(check-expect (calculate-new-direction d-down d-down) d-down)
+(check-expect (calculate-new-direction d-left d-down) d-down)
+(check-expect (calculate-new-direction d-up d-down) d-up)
+(define (calculate-new-direction current-dir ke)
+  (cond
+    [(and (string=? ke d-up) (not (string=? current-dir d-down))) d-up]
+    [(and (string=? ke d-down) (not (string=? current-dir d-up))) d-down]
+    [(and (string=? ke d-left) (not (string=? current-dir d-right))) d-left]
+    [(and (string=? ke d-right) (not (string=? current-dir d-left))) d-right]
+    [else current-dir]
+    ))
 
 
 ; WorldState KeyEvent -> WorldState
@@ -77,10 +96,10 @@
 ; Translates the pos one unit according to the direction
 (define (translate-pos pos dir)
   (cond
-    [(string=? dir "up") (make-posn (posn-x pos) (- (posn-y pos) 1))]
-    [(string=? dir "down") (make-posn (posn-x pos) (+ (posn-y pos) 1))]
-    [(string=? dir "left") (make-posn (- (posn-x pos) 1) (posn-y pos))]
-    [(string=? dir "right") (make-posn (+ (posn-x pos) 1) (posn-y pos))]
+    [(string=? dir d-up) (make-posn (posn-x pos) (- (posn-y pos) 1))]
+    [(string=? dir d-down) (make-posn (posn-x pos) (+ (posn-y pos) 1))]
+    [(string=? dir d-left) (make-posn (- (posn-x pos) 1) (posn-y pos))]
+    [(string=? dir d-right) (make-posn (+ (posn-x pos) 1) (posn-y pos))]
     ))
 
 
@@ -127,9 +146,15 @@
   (overlay/align
     "left"
     "bottom"
-    (text "Bro, you hit the wall!" 24 "black")
     (render-world ws)
+    (make-message "Bro, you hit the wall!")
     ))
+
+
+; String -> Image
+(define (make-message msg)
+  (text msg 24 "black")
+  )
 
 
 (define (main-v2 ws)
@@ -278,20 +303,17 @@
 
 
 ; WorldState -> Boolean
-(define (over? ws)
-  (not (string?= (world-v4-status ws)))
+(define (over?-v4 ws)
+  (not (string=? (world-v4-status ws) running))
   )
 
 
 ; WorldState KeyEvent -> WorldState
 ; Handles the key events
 (define (on-key-press-v4 ws ke)
-  (make-world
+  (make-world-v4
     (world-v4-trail ws)
-    (cond
-      [(member ke DIRECTIONS) ke]
-      [else (world-v4-direct ws)]
-      )
+    (calculate-new-direction (world-v4-direct ws) ke)
     (world-v4-status ws)
     ))
 
@@ -300,15 +322,55 @@
 ; Handles the ticking of the world
 (define (tock-v4 ws)
   (cond
-    [(hitting-wall?) (...hit-wall)]
-    [(hitting-itself?) (...hit-wall)]
+    [(hitting-wall? (first (world-v4-trail ws))) 
+     (make-world-v4
+        (world-v4-trail ws)
+        (world-v4-direct ws)
+        hit-wall
+        )]
+
+    [(hitting-itself? (world-v4-trail ws))
+     (make-world-v4
+        (world-v4-trail ws)
+        (world-v4-direct ws)
+        hit-itself
+        )]
+
     [else
       (make-world-v4
         (move-trail (world-v4-trail ws) (world-v4-direct ws))
-        (world-v3-direct ws)
+        (world-v4-direct ws)
+        (world-v4-status ws)
+        )]))
+
+; Trail -> Boolean
+; Returns whether the trail is hitting itself
+(define (hitting-itself? trail)
+  (member (first trail) (rest trail))
+  )
+
+
+; WorldState -> Image
+(define (render-world-v4 ws)
+  (render-trail
+    (world-v4-trail ws)
+    BACKGROUND
+    ))
+
+
+; WorldState -> Image
+; renders the last image after the world ended
+(define (render-final-v4 ws)
+  (overlay/align
+    "left"
+    "bottom"
+    (make-message
+      (cond
+        [(string=? (world-v4-status ws) hit-wall) "Bro, you hit the wall!"]
+        [(string=? (world-v4-status ws) hit-itself) "Bro, you hit yourself!"]
         ))
-      ]
-    )
+    (render-world-v4 ws)
+    ))
 
 
 (define (main-v4 ws)
@@ -317,9 +379,20 @@
     [to-draw render-world-v4]
     [on-key on-key-press-v4]
     [on-tick tock-v4 0.1]
+    [stop-when over?-v4 render-final-v4]
     ))
 
-; (main-v3 (make-world-v3 (list (make-posn 2 0) (make-posn 1 0) (make-posn 0 0)) "down"))
+(main-v4
+  (make-world-v4 
+    (list 
+      (make-posn 4 0)
+      (make-posn 3 0) 
+      (make-posn 2 0) 
+      (make-posn 1 0) 
+      (make-posn 0 0)) 
+    "down"
+    running
+    ))
 
 ; =================== End of exercise ==================
 
