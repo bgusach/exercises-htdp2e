@@ -125,19 +125,30 @@
 ; ### Functions
 ; WorldState -> Boolean
 (define (over? ws)
-  (hitting-wall? (world-pos ws))
+  (hitting-wall? (world-pos ws) (world-direct ws))
   )
 
 
-; Posn -> Boolean
-; Returns whether the posn is hitting a wall
-(define (hitting-wall? pos)
+; Posn Direction -> Boolean
+; Returns whether the posn is hitting a wall on the next tick
+(define (hitting-wall? pos dir)
   (or
-    (negative? (posn-x pos))
-    (negative? (posn-y pos))
-    (>= (posn-x pos) TILES-PER-SIDE)
-    (>= (posn-y pos) TILES-PER-SIDE)
-    ))
+    (and 
+      (zero? (posn-x pos)) 
+      (string=? dir d-left)
+      )
+    (and 
+      (= (posn-x pos) (sub1 TILES-PER-SIDE))
+      (string=? dir d-right)
+      )
+    (and 
+      (zero? (posn-y pos))
+      (string=? dir d-up)
+      )
+    (and 
+      (= (posn-y pos) (sub1 TILES-PER-SIDE))
+      (string=? dir d-down)
+      )))
 
 
 ; WorldState -> Image
@@ -322,14 +333,14 @@
 ; Handles the ticking of the world
 (define (tock-v4 ws)
   (cond
-    [(hitting-wall? (first (world-v4-trail ws))) 
+    [(hitting-wall? (first (world-v4-trail ws)) (world-v4-direct ws)) 
      (make-world-v4
         (world-v4-trail ws)
         (world-v4-direct ws)
         hit-wall
         )]
 
-    [(hitting-itself? (world-v4-trail ws))
+    [(hitting-itself? (world-v4-trail ws)); (world-direct ws))
      (make-world-v4
         (world-v4-trail ws)
         (world-v4-direct ws)
@@ -381,6 +392,7 @@
     [on-tick tock-v4 0.1]
     [stop-when over?-v4 render-final-v4]
     ))
+
 
 (main-v4
   (make-world-v4 
