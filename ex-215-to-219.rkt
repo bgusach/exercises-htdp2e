@@ -16,6 +16,7 @@
 (define BACKGROUND-HEIGHT (* TILE-WIDTH Y-TILES))
 (define BACKGROUND (empty-scene BACKGROUND-WIDTH BACKGROUND-HEIGHT))
 (define SNAKE-COLOUR "red")
+(define FOOD-COLOUR "green")
 
 
 ; The prefixes are there to avoid clashes with an import
@@ -57,7 +58,7 @@
     img
     (* (posn-x pos) TILE-WIDTH)
     (* (posn-y pos) TILE-WIDTH)
-    (square TILE-WIDTH "solid" SNAKE-COLOUR)  ; Squares look more retro =)
+    (square TILE-WIDTH "solid" col)  ; Squares look more retro =)
     ))
 
 
@@ -398,8 +399,141 @@
     ))
 
 
-(main-v4
-  (make-world-v4 
+; (main-v4
+; (make-world-v4 
+;   (list 
+;     (make-posn 4 0)
+;     (make-posn 3 0) 
+;     (make-posn 2 0) 
+;     (make-posn 1 0) 
+;     (make-posn 0 0)) 
+;   "down"
+;   running
+;   ))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 219 ====================
+; suffix for new versions: -v5
+
+; Food is a Posn
+; Interpretation: the position where the food is at given moment
+
+; WorldState is a structure (make-world Direction Trail GameStatus)
+; Interpretation: the snake is placed in trail 
+; and moves to direct
+(define-struct world-v5 [trail direct status food])
+
+
+; WorldState KeyEvent -> WorldState
+; Handles the ticking of the world
+(define (tock-v5 ws)
+  (cond
+    [(hitting-wall? (first (world-v5-trail ws)) (world-v5-direct ws)) 
+     (make-world-v5
+        (world-v5-trail ws)
+        (world-v5-direct ws)
+        hit-wall
+        (world-v5-food ws)
+        )]
+
+    [(hitting-itself? (world-v5-trail ws) (world-v5-direct ws))
+     (make-world-v5
+        (world-v5-trail ws)
+        (world-v5-direct ws)
+        hit-itself
+        (world-v5-food ws)
+        )]
+
+    [(hitting-food? (world-v5-trail ws) (world-v5-direct ws) (world-v5-food ws))
+     (make-world-v5
+        (cons 
+          (translate-pos (first (world-v5-trail ws)) (world-v5-direct ws)) 
+          (world-v5-trail ws)
+          )
+        (world-v5-direct ws)
+        (world-v5-status ws)
+        ; This may place the food where the snake is in this instant,
+        ; but it is OK for the moment
+        (make-posn (random X-TILES) (random Y-TILES))
+        )]
+
+    [else
+      (make-world-v5
+        (move-trail (world-v5-trail ws) (world-v5-direct ws))
+        (world-v5-direct ws)
+        (world-v5-status ws)
+        (world-v5-food ws)
+        )]))
+
+
+; Trail Food -> Boolean
+; Returns whether the snake is hitting the food with the head in the next tick
+(define (hitting-food? trail direction food)
+  (equal?
+    (translate-pos (first trail) direction)
+    food
+    ))
+
+
+; WorldState -> Image
+(define (render-world-v5 ws)
+  (render-trail
+    (world-v5-trail ws)
+    (render-element 
+      (world-v5-food ws) 
+      FOOD-COLOUR 
+      BACKGROUND
+      )))
+
+
+; WorldState -> Image
+; renders the last image after the world ended
+(define (render-final-v5 ws)
+  (overlay/align
+    "left"
+    "bottom"
+    (make-message
+      (cond
+        [(string=? (world-v5-status ws) hit-wall) "Bro, you hit the wall!"]
+        [(string=? (world-v5-status ws) hit-itself) "Bro, you hit yourself!"]
+        ))
+    (render-world-v5 ws)
+    ))
+
+
+; WorldState KeyEvent -> WorldState
+; Handles the key events
+(define (on-key-press-v5 ws ke)
+  (make-world-v5
+    (world-v5-trail ws)
+    (calculate-new-direction (world-v5-direct ws) ke)
+    (world-v5-status ws)
+    (world-v5-food ws)
+    ))
+
+
+; WorldState -> Boolean
+(define (over?-v5 ws)
+  (not (string=? (world-v5-status ws) running))
+  )
+
+
+(define (main-v5 ws)
+  (big-bang 
+    ws
+    [to-draw render-world-v5]
+    [on-key on-key-press-v5]
+    [on-tick tock-v5 0.1]
+    [stop-when over?-v5 render-final-v5]
+    ))
+
+
+(main-v5
+  (make-world-v5 
     (list 
       (make-posn 4 0)
       (make-posn 3 0) 
@@ -408,6 +542,7 @@
       (make-posn 0 0)) 
     "down"
     running
+    (make-posn 20 15)
     ))
 
 ; =================== End of exercise ==================
