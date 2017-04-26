@@ -9,8 +9,8 @@
 
 ; ==================== Exercise 215 ====================
 ; ### Constants
-(define X-TILES 40)
-(define Y-TILES 30)
+(define X-TILES 30)
+(define Y-TILES 20)
 (define TILE-WIDTH 10)
 (define BACKGROUND-WIDTH (* TILE-WIDTH X-TILES))
 (define BACKGROUND-HEIGHT (* TILE-WIDTH Y-TILES))
@@ -382,8 +382,8 @@
     "bottom"
     (make-message
       (cond
-        [(string=? (world-v4-status ws) hit-wall) "Bro, you hit the wall!"]
-        [(string=? (world-v4-status ws) hit-itself) "Bro, you hit yourself!"]
+        [(string=? (world-v4-status ws) hit-wall) "Ha-ha you hit the wall!"]
+        [(string=? (world-v4-status ws) hit-itself) "Ha-ha you hit yourself!"]
         ))
     (render-world-v4 ws)
     ))
@@ -456,9 +456,12 @@
           )
         (world-v5-direct ws)
         (world-v5-status ws)
-        ; This may place the food where the snake is in this instant,
-        ; but it is OK for the moment
-        (make-posn (random X-TILES) (random Y-TILES))
+
+        (create-food
+          (translate-pos 
+            (first (world-v5-trail ws)) 
+            (world-v5-direct ws)
+            ))
         )]
 
     [else
@@ -479,13 +482,33 @@
     ))
 
 
+; Posn -> Posn
+; Returns the new position where the food can be placed, but not in not-here
+(define (create-food not-here)
+  (check-create-food 
+    (make-posn (random X-TILES) (random Y-TILES))
+    not-here 
+    ))
+
+
+; Posn Posn -> Posn
+; If candidate and not-here do not collide, food is returned, otherwise
+; another candidate is requested
+(define (check-create-food candidate not-here)
+  (if
+    (equal? candidate not-here)
+    (create-food not-here)
+    candidate
+    ))
+
+
 ; WorldState -> Image
 (define (render-world-v5 ws)
-  (render-trail
-    (world-v5-trail ws)
-    (render-element 
-      (world-v5-food ws) 
-      FOOD-COLOUR 
+  (render-element 
+    (world-v5-food ws) 
+    FOOD-COLOUR 
+    (render-trail
+      (world-v5-trail ws)
       BACKGROUND
       )))
 
@@ -498,8 +521,8 @@
     "bottom"
     (make-message
       (cond
-        [(string=? (world-v5-status ws) hit-wall) "Bro, you hit the wall!"]
-        [(string=? (world-v5-status ws) hit-itself) "Bro, you hit yourself!"]
+        [(string=? (world-v5-status ws) hit-wall) "Ha-ha you hit the wall!"]
+        [(string=? (world-v5-status ws) hit-itself) "Ha-ha you hit yourself!"]
         ))
     (render-world-v5 ws)
     ))
