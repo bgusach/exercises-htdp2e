@@ -58,8 +58,11 @@
     img
     (* (posn-x pos) TILE-WIDTH)
     (* (posn-y pos) TILE-WIDTH)
-    (square TILE-WIDTH "solid" col)  ; Squares look more retro =)
-    ))
+    (square  ; Squares look more retro =)
+      (sub1 TILE-WIDTH)  ; 1px gives some olc lcd feeling 
+      "solid" 
+      col
+      )))
 
 
 ; WorldState KeyEvent -> WorldState
@@ -422,7 +425,8 @@
 ; Food is a Posn
 ; Interpretation: the position where the food is at given moment
 
-; WorldState is a structure (make-world Direction Trail GameStatus)
+; WorldState is a structure:
+;   (make-world Trail Direction GameStatus Food)
 ; Interpretation: the snake is placed in trail 
 ; and moves to direct
 (define-struct world-v5 [trail direct status food])
@@ -461,8 +465,7 @@
           (translate-pos 
             (first (world-v5-trail ws)) 
             (world-v5-direct ws)
-            ))
-        )]
+            )))]
 
     [else
       (make-world-v5
@@ -555,20 +558,228 @@
     ))
 
 
-(main-v5
-  (make-world-v5 
-    (list 
-      (make-posn 4 0)
-      (make-posn 3 0) 
-      (make-posn 2 0) 
-      (make-posn 1 0) 
-      (make-posn 0 0)) 
+; (main-v5
+;   (make-world-v5 
+;     (list 
+;       (make-posn 4 0)
+;       (make-posn 3 0) 
+;       (make-posn 2 0) 
+;       (make-posn 1 0) 
+;       (make-posn 0 0)) 
+;     "down"
+;     running
+;     (make-posn 20 15)
+;     ))
+
+; =================== End of exercise ==================
+
+
+; ============= Exercise 219 - extensions===============
+; suffix for new versions: -v6
+; Improvements/extensions of the exercise 219
+
+; Food is a Posn
+; Interpretation: the position where the food is at given moment
+
+; DirectionRequest is one of:
+; - Direction
+; - #false
+; Interpretation: direction requested for next world tick
+
+; WorldState is a structure:
+;   (make-world Trail Direction DirectionRequest GameStatus Food)
+; 
+; Interpretation: 
+; - trail: the space the snake is taking. First element is the head
+; - direct: direction the snake is currently moving
+; - req-dir: requested direction for next tick
+; - status: status of game
+; - food: position of food
+(define-struct world-v6 [trail direct req-dir status food])
+
+
+; WorldState KeyEvent -> WorldState
+; Handles the ticking of the world
+(define (tock-v6 ws)
+  (cond
+    [(hitting-wall? 
+       (first (world-v6-trail ws)) 
+       (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
+       )
+     (set-world-status ws hit-wall)
+     ]
+
+    [(hitting-itself? 
+       (world-v6-trail ws) 
+       (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
+       )
+     (set-world-status ws hit-itself)
+     ]
+
+    [(hitting-food? 
+       (world-v6-trail ws) 
+       (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
+       (world-v6-food ws)
+       )
+     (make-world-v6
+        (cons 
+          (translate-pos 
+            (first (world-v6-trail ws)) 
+            ; Repeating this all the time is pretty annoying...
+            (calculate-new-direction-v6
+              (world-v6-direct ws)
+              (world-v6-req-dir ws)
+              ))
+          (world-v6-trail ws)
+          )
+        (world-v6-direct ws)
+        (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
+        (world-v6-status ws)
+
+        (create-food
+          (translate-pos 
+            (first (world-v6-trail ws)) 
+            (world-v6-direct ws)
+            )))]
+
+    [else
+      (make-world-v6
+        (move-trail 
+          (world-v6-trail ws) 
+          (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
+          )
+        (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
+        #false
+        (world-v6-status ws)
+        (world-v6-food ws)
+        )]))
+
+
+; WorldState -> WorldState
+; Creates a copy of ws setting a new status
+(define (set-world-status ws status)
+  (make-world-v6
+    (world-v6-trail ws)
+    (world-v6-direct ws)
+    (world-v6-req-dir ws)
+    status
+    (world-v6-food ws)
+    ))
+
+
+; Direction DirectionRequest -> Direction
+; Calculates the new direction from current and request 
+(check-expect (calculate-new-direction-v6 d-down d-down) d-down)
+(check-expect (calculate-new-direction-v6 d-left d-down) d-down)
+(check-expect (calculate-new-direction-v6 d-up d-down) d-up)
+(check-expect (calculate-new-direction-v6 d-up #false) d-up)
+(define (calculate-new-direction-v6 current-dir dir-req)
+  (cond
+    [(false? dir-req) current-dir]
+    [(and (string=? dir-req d-up) (not (string=? current-dir d-down))) d-up]
+    [(and (string=? dir-req d-down) (not (string=? current-dir d-up))) d-down]
+    [(and (string=? dir-req d-left) (not (string=? current-dir d-right))) d-left]
+    [(and (string=? dir-req d-right) (not (string=? current-dir d-left))) d-right]
+    [else current-dir]
+    ))
+
+
+; WorldState -> Image
+(define (render-world-v6 ws)
+  (render-element 
+    (world-v6-food ws) 
+    FOOD-COLOUR 
+    (render-trail
+      (world-v6-trail ws)
+      (above/align
+        d-right
+        BACKGROUND
+        (make-score (calculate-points ws))
+        ))))
+
+
+; WorldState -> Image
+; renders the last image after the world ended
+(define (render-final-v6 ws)
+  (overlay
+    (make-message
+      (cond
+        [(string=? (world-v6-status ws) hit-wall) "Ha-ha you hit the wall!"]
+        [(string=? (world-v6-status ws) hit-itself) "Ha-ha you hit yourself!"]
+        ))
+    (render-world-v6 ws)
+    ))
+
+
+; WorldState KeyEvent -> WorldState
+; Handles the key events
+(define (on-key-press-v6 ws ke)
+  (make-world-v6
+    (world-v6-trail ws)
+    (world-v6-direct ws)
+
+    ; NOTE: if the direction is changed directly here, weird bugs happen
+    ; because sometimes you hit the keys so fast that the direction is changed
+    ; multiple times within the same tick-period, leading to false positive
+    ; crash detection. The better approach is to save the last key event, and 
+    ; process it on the next tick
+    (if (member ke DIRECTIONS) ke #false)
+
+    (world-v6-status ws)
+    (world-v6-food ws)
+    ))
+
+
+; WorldState -> Boolean
+(define (over?-v6 ws)
+  (not (string=? (world-v6-status ws) running))
+  )
+
+
+; Number -> Image
+; Makes an image with the score
+(define (make-score s)
+  (text (format "score: ~a" s) 16 "black")
+  )
+
+
+; WorldState -> WorldState
+(define (main-v6 ws)
+  (calculate-points
+    (big-bang 
+      ws
+      [to-draw render-world-v6]
+      [on-key on-key-press-v6]
+      [on-tick tock-v6 0.1]
+      [stop-when over?-v6 render-final-v6]
+      )))
+
+
+; WorldState -> Number
+; Returns the points accumulated in the game state
+(define (calculate-points ws)
+  (- (length (world-v6-trail ws)) (length INITIAL-SNAKE))
+  )
+
+
+(define 
+  INITIAL-SNAKE
+  (list 
+    (make-posn 4 0)
+    (make-posn 3 0) 
+    (make-posn 2 0) 
+    (make-posn 1 0) 
+    (make-posn 0 0)
+    )) 
+
+(main-v6
+  (make-world-v6 
+    INITIAL-SNAKE
     "down"
+    #false
     running
     (make-posn 20 15)
     ))
 
 ; =================== End of exercise ==================
-
-
 (test)
