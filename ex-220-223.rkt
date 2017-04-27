@@ -117,7 +117,7 @@
 
     (make-tetris
       (make-block 
-        (modulo (add1 (block-x this-block)) WIDTH)
+        (choose-another-column (block-x this-block))
          0
          )
        (cons this-block landscape)
@@ -127,6 +127,22 @@
       next-block
       landscape
       )))
+
+
+; Number -> Number
+; Returns a different column than the previous
+(define (choose-another-column c)
+  (choose-another-column-helper c (random WIDTH))
+  )
+
+
+; Function that complements choose-another-column
+(define (choose-another-column-helper pre new)
+  (if
+    (= pre new)
+    (choose-another-column pre)
+    new
+    ))
 
 
 ; Block Landscape -> Boolean
@@ -166,6 +182,36 @@
     ))
 
 
+
+(define (main ws rate)
+  (big-bang 
+    ws
+    [to-draw render-tetris]
+    [on-tick tock rate]
+    ))
+
+(main (make-tetris block0 '()) 0.1)
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 222 ====================
+
+; ### Function definitions
+(define (main-v2 ws rate)
+  (big-bang 
+    ws
+    [to-draw render-tetris]
+    ; [on-key on-key-press]
+    [on-tick tock rate]
+    ; [stop-when over? render-final]
+    ))
+
+
+; =================== End of exercise ==================
+
 ; WorldState -> Boolean
 ; Predicate to define when the world comes to an end
 (define (over? ws)
@@ -178,26 +224,6 @@
 ; (define (render-final ws)
 ;   (render-world ws)
 ;   )
-
-
-(define (main ws rate)
-  (big-bang 
-    ws
-    [to-draw render-tetris]
-    ; [on-key on-key-press]
-    [on-tick tock rate]
-    ; [stop-when over? render-final]
-    ))
-
-(main (make-tetris block0 '()) 0.1)
-
-; =================== End of exercise ==================
-
-
-
-
-; ==================== Exercise 221 ====================
-; =================== End of exercise ==================
 
 
 (test)
