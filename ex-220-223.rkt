@@ -90,15 +90,6 @@
 
 ; ### Functions
 
-; WorldState KeyEvent -> WorldState
-; Handles the key events
-; (define (on-key-press ws ke)
-;   (cond
-;     [(key=? ke "...") ...])
-;     [else ws]
-;     )
-
-
 ; Tetris -> Tetris
 ; Handles the ticking of the world
 (define (tock t)
@@ -190,7 +181,7 @@
     [on-tick tock rate]
     ))
 
-(main (make-tetris block0 '()) 0.1)
+; (main (make-tetris block0 '()) 0.1)
 
 ; =================== End of exercise ==================
 
@@ -198,17 +189,57 @@
 
 
 ; ==================== Exercise 222 ====================
+; Suffix for new versions: -v2
+
+
+; Tetris KeyEvent -> WorldState
+; Handles the key events
+(define (on-key-press t ke)
+  (on-key-press-helper 
+    t
+    ke 
+    (block-x (tetris-block t))
+    (block-y (tetris-block t))
+    (tetris-landscape t)
+    ))
+
+
+; Keyhandler, but with bound values
+(define (on-key-press-helper t ke block-x block-y landscape)
+  (cond
+    [(and
+       (key=? ke d-right) 
+       (< block-x (sub1 WIDTH))
+       )
+     (make-tetris
+       (make-block (add1 block-x) block-y)
+       landscape
+       )]
+
+    [(and
+       (key=? ke d-left) 
+       (> block-x 0)
+       )
+     (make-tetris
+       (make-block (sub1 block-x) block-y)
+       landscape
+       )]
+
+    [else t]
+    ))
 
 ; ### Function definitions
 (define (main-v2 ws rate)
   (big-bang 
     ws
     [to-draw render-tetris]
-    ; [on-key on-key-press]
+    [on-key on-key-press]
     [on-tick tock rate]
     ; [stop-when over? render-final]
     ))
 
+
+(main-v2 (make-tetris block0 '()) 0.1)
 
 ; =================== End of exercise ==================
 
