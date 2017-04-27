@@ -1,4 +1,4 @@
-#lang htdp/bsl
+#lang htdp/bsl+
 
 (require 2htdp/image)
 (require 2htdp/universe)
@@ -13,7 +13,7 @@
 ; ### Data Definitions
 
 ; WorldState is a structure (world ...)
-; interpretation:
+; Interpretation:
 (define-struct world [...])
 
 
@@ -26,7 +26,7 @@
 
 
 ; WorldState KeyEvent -> WorldState
-; handles the key events
+; Handles the key events
 (define (on-key-press ws ke)
   (cond
     [(key=? ke "...") ...])
@@ -35,21 +35,21 @@
 
 
 ; WorldState KeyEvent -> WorldState
-; handles the ticking of the world
+; Handles the ticking of the world
 (define (tock ws)
   ws
   )
 
 
 ; WorldState -> Boolean
-; predicate to define when the world comes to an end
+; Predicate to define when the world comes to an end
 (define (over? ws)
   #false
   )
 
 
 ; WorldState -> Image
-; renders the last image after the world ended
+; Renders the last image after the world ended
 (define (render-final ws)
   (render-world ws)
   )
@@ -66,6 +66,6 @@
     ))
 
 
-; TEST & MAIN CALL
 (test)
 (main (make-world ...))
+
