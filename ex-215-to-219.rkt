@@ -601,57 +601,40 @@
 ; WorldState KeyEvent -> WorldState
 ; Handles the ticking of the world
 (define (tock-v6 ws)
+  (tick-world 
+    ws 
+    (world-v6-trail ws) 
+    (first (world-v6-trail ws)) 
+    (world-v6-direct ws) 
+    (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
+    (world-v6-status ws)
+    (world-v6-food ws)
+    ))
+
+
+; WorldState Trail Posn Direction Direction Status Food -> WorldState
+; Same as tock-v6, but here all the necessary values are bound to a variable,
+; thus avoiding huge amounts of repetition
+(define (tick-world ws trail head direction next-direction status food)
   (cond
-    [(hitting-wall? 
-       (first (world-v6-trail ws)) 
-       (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
-       )
-     (set-world-status ws hit-wall)
-     ]
-
-    [(hitting-itself? 
-       (world-v6-trail ws) 
-       (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
-       )
-     (set-world-status ws hit-itself)
-     ]
-
-    [(hitting-food? 
-       (world-v6-trail ws) 
-       (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
-       (world-v6-food ws)
-       )
+    [(hitting-wall? head next-direction) (set-world-status ws hit-wall)]
+    [(hitting-itself? trail next-direction) (set-world-status ws hit-itself)]
+    [(hitting-food?  trail next-direction food)
      (make-world-v6
-        (cons 
-          (translate-pos 
-            (first (world-v6-trail ws)) 
-            ; Repeating this all the time is pretty annoying...
-            (calculate-new-direction-v6
-              (world-v6-direct ws)
-              (world-v6-req-dir ws)
-              ))
-          (world-v6-trail ws)
-          )
-        (world-v6-direct ws)
-        (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
-        (world-v6-status ws)
-
-        (create-food
-          (translate-pos 
-            (first (world-v6-trail ws)) 
-            (world-v6-direct ws)
-            )))]
+        (cons (translate-pos head next-direction) trail)
+        direction
+        next-direction
+        status
+        (create-food (translate-pos head direction))
+        )]
 
     [else
       (make-world-v6
-        (move-trail 
-          (world-v6-trail ws) 
-          (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
-          )
-        (calculate-new-direction-v6 (world-v6-direct ws) (world-v6-req-dir ws))
+        (move-trail trail next-direction)
+        next-direction
         #false
-        (world-v6-status ws)
-        (world-v6-food ws)
+        status
+        food
         )]))
 
 
@@ -782,4 +765,6 @@
     ))
 
 ; =================== End of exercise ==================
+
 (test)
+
