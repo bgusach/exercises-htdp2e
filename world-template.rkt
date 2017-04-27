@@ -34,7 +34,7 @@
     )
 
 
-; WorldState KeyEvent -> WorldState
+; WorldState -> WorldState
 ; Handles the ticking of the world
 (define (tock ws)
   ws
