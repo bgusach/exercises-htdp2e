@@ -9,11 +9,11 @@
 
 ; ==================== Exercise 215 ====================
 ; ### Constants
-(define X-TILES 30)
-(define Y-TILES 20)
-(define TILE-WIDTH 10)
-(define BACKGROUND-WIDTH (* TILE-WIDTH X-TILES))
-(define BACKGROUND-HEIGHT (* TILE-WIDTH Y-TILES))
+(define X-BLOCKS 30)
+(define Y-BLOCKS 20)
+(define BLOCK-WIDTH 10)
+(define BACKGROUND-WIDTH (* BLOCK-WIDTH X-BLOCKS))
+(define BACKGROUND-HEIGHT (* BLOCK-WIDTH Y-BLOCKS))
 (define BACKGROUND (empty-scene BACKGROUND-WIDTH BACKGROUND-HEIGHT))
 (define SNAKE-COLOUR "red")
 (define FOOD-COLOUR "green")
@@ -56,10 +56,10 @@
 (define (render-element pos col img)
   (underlay/xy
     img
-    (* (posn-x pos) TILE-WIDTH)
-    (* (posn-y pos) TILE-WIDTH)
+    (* (posn-x pos) BLOCK-WIDTH)
+    (* (posn-y pos) BLOCK-WIDTH)
     (square  ; Squares look more retro =)
-      (sub1 TILE-WIDTH)  ; 1px gives some olc lcd feeling 
+      (sub1 BLOCK-WIDTH)  ; 1px gives some olc lcd feeling 
       "solid" 
       col
       )))
@@ -144,7 +144,7 @@
       (string=? dir d-left)
       )
     (and 
-      (= (posn-x pos) (sub1 X-TILES))
+      (= (posn-x pos) (sub1 X-BLOCKS))
       (string=? dir d-right)
       )
     (and 
@@ -152,7 +152,7 @@
       (string=? dir d-up)
       )
     (and 
-      (= (posn-y pos) (sub1 Y-TILES))
+      (= (posn-y pos) (sub1 Y-BLOCKS))
       (string=? dir d-down)
       )))
 
@@ -489,7 +489,7 @@
 ; Returns the new position where the food can be placed, but not in not-here
 (define (create-food not-here)
   (check-create-food 
-    (make-posn (random X-TILES) (random Y-TILES))
+    (make-posn (random X-BLOCKS) (random Y-BLOCKS))
     not-here 
     ))
 
