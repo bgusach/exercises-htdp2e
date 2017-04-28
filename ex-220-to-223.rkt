@@ -191,44 +191,51 @@
 ; ==================== Exercise 222 ====================
 ; Suffix for new versions: -v2
 
+; ### Function definitions
 
 ; Tetris KeyEvent -> WorldState
 ; Handles the key events
-(define (on-key-press t ke)
-  (on-key-press-helper 
-    t
-    ke 
-    (block-x (tetris-block t))
-    (block-y (tetris-block t))
-    (tetris-landscape t)
+(define (on-key-press tetris ke)
+  (if
+    (member ke (list d-left d-right))
+
+    (evaluate-movement (move-block (tetris-block tetris) ke) tetris)
+    tetris
     ))
 
 
-; Keyhandler, but with bound values
-(define (on-key-press-helper t ke block-x block-y landscape)
+; Block Direction -> Block
+; Moves the block b to the passed direction
+(define (move-block b direction)
   (cond
-    [(and
-       (key=? ke d-right) 
-       (< block-x (sub1 WIDTH))
-       )
-     (make-tetris
-       (make-block (add1 block-x) block-y)
-       landscape
-       )]
-
-    [(and
-       (key=? ke d-left) 
-       (> block-x 0)
-       )
-     (make-tetris
-       (make-block (sub1 block-x) block-y)
-       landscape
-       )]
-
-    [else t]
+    [(string=? direction d-left) (make-block (sub1 (block-x b)) (block-y b))]
+    [(string=? direction d-right) (make-block (add1 (block-x b)) (block-y b))]
+    [(string=? direction d-down) (make-block (block-x b) (add1 (block-y b)))]
+    [else (error (format "Illegal direction: ~a" direction))]
     ))
 
-; ### Function definitions
+
+; Block Tetris -> Tetris
+; Given the candidate for next block and current tetris
+; state, it returns the new tetris state
+(define (evaluate-movement block-candidate tetris)
+  (cond
+    [(or
+       (< (block-x block-candidate) 0)
+       (> (block-x block-candidate) (sub1 WIDTH))
+       (member block-candidate (tetris-landscape tetris))
+       )
+
+     tetris
+     ]
+
+    [else 
+     (make-tetris
+       block-candidate
+       (tetris-landscape tetris)
+       )]))
+
+
 (define (main-v2 ws rate)
   (big-bang 
     ws
