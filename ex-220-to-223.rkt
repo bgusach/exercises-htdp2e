@@ -23,7 +23,6 @@
 ; where x and y are coordinates
 ; 
 
-
 ; A Landscape is one of:
 ; - '()
 ; - (cons Block Landscape)
@@ -242,26 +241,58 @@
     [to-draw render-tetris]
     [on-key on-key-press]
     [on-tick tock rate]
-    ; [stop-when over? render-final]
     ))
 
 
-(main-v2 (make-tetris block0 '()) 0.1)
+; (main-v2 (make-tetris block0 '()) 0.1)
 
 ; =================== End of exercise ==================
 
-; WorldState -> Boolean
+
+
+
+; ==================== Exercise 223 ====================
+
+
+; Tetris -> Boolean
 ; Predicate to define when the world comes to an end
-(define (over? ws)
-  #false
+(define (over? tetris)
+  (top-collision? (tetris-landscape tetris))
   )
 
 
-; WorldState -> Image
-; Renders the last image after the world ended
-; (define (render-final ws)
-;   (render-world ws)
-;   )
+; Landscape -> Boolean
+; Returns whether any block is stacked so high that is touching
+; the top of the canvas
+(define (top-collision? landscape)
+  (cond
+    [(empty? landscape) #false]
+    [(zero? (block-y (first landscape))) #true]
+    [else (top-collision? (rest landscape))]
+    ))
+
+; Tetris -> Image
+(define (render-final tetris)
+  (overlay
+    (text "Ha-ha, game over!" 24 "black")
+    (empty-scene (* 2/3 UNIT-WIDTH WIDTH) (* 3 UNIT-WIDTH))
+    (render-tetris tetris)
+    ))
+
+
+(define (main-v3 ws rate)
+  (big-bang 
+    ws
+    [to-draw render-tetris]
+    [on-key on-key-press]
+    [on-tick tock rate]
+    [stop-when over? render-final]
+    ))
+
+
+(main-v3 (make-tetris block0 '()) 0.1)
+
+; =================== End of exercise ==================
 
 
 (test)
