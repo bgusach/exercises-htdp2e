@@ -12,7 +12,7 @@
 
 ; ### Data Definitions
 
-; WorldState is a structure (world ...)
+; WorldState is a structure (make-world ...)
 ; Interpretation:
 (define-struct world [...])
 
@@ -29,9 +29,9 @@
 ; Handles the key events
 (define (on-key-press ws ke)
   (cond
-    [(key=? ke "...") ...])
+    [(key=? ke "...") ws]
     [else ws]
-    )
+    ))
 
 
 ; WorldState -> WorldState
