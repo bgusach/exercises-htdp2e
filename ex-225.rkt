@@ -9,11 +9,15 @@
 (define BACKGROUND-HEIGHT 400)
 (define BACKGROUND (empty-scene BACKGROUND-WIDTH BACKGROUND-HEIGHT))
 
-(define AEROPLANE-SPEED 5)
-(define AEROPLANE (rectangle 100 40 "solid" "olive"))
+(define AEROPLANE-SPEED 10)
+(define AEROPLANE-WIDTH 100)
+(define AEROPLANE (rectangle AEROPLANE-WIDTH 40 "solid" "olive"))
+(define AEROPLANE-Y 100)
 (define WATER (circle 20 "solid" "blue"))
 (define WATER-SPEED 10)
 (define FIRE (circle 20 "solid" "red"))
+(define FIRE-Y (- BACKGROUND-HEIGHT 10))
+(define COLLISION-DISTANCE 20)
 
 
 ; ### Data Definitions
@@ -21,12 +25,14 @@
 ; Direction is one of:
 ; - "right"
 ; - "left"
+; or one of:
+(define DIRECTIONS (list "right" "left"))
 
-; Aeroplane is a structure (make-aeroplane x y direction)
-(define-struct plane [x y direction])
+; Aeroplane is a structure (make-aeroplane x direction)
+(define-struct plane [x direction])
 
 
-; Fire is a Posn, representing its position
+; Fire is a Number representing its x-position
 
 ; Fires is one of:
 ; - '()
@@ -48,52 +54,187 @@
 (define (render-world ws)
   (render-plane
     (world-plane ws)
-    BACKGROUND
-    ))
+    (render-fires
+      (world-fires ws)
+      (render-waters 
+        (world-waters ws)
+        BACKGROUND
+        ))))
 
 
 ; Aeroplane Image -> Image
 ; Renders the plane on top of img
 (define (render-plane plane img)
-  (place-image
+  (place-image/align
     AEROPLANE
     (plane-x plane)
+    AEROPLANE-Y
+    "left"
+    "top"
     img
     ))
+
+
+; Waters Image -> Image
+; Renders the waters on top of the image
+(define (render-waters waters img)
+  (cond
+    [(empty? waters) img]
+    [else
+      (place-image
+        WATER
+        (posn-x (first waters))
+        (posn-y (first waters))
+        (render-waters (rest waters) img)
+        )]))
+
+
+; Waters Image -> Image
+; Renders the fires on top of the image
+(define (render-fires fires img)
+  (cond
+    [(empty? fires) img]
+    [else
+      (place-image
+        FIRE
+        FIRE-Y
+        (first fires)
+        (render-fires (rest fires) img)
+        )]))
 
 
 ; WorldState KeyEvent -> WorldState
 ; Handles the key events
 (define (on-key-press ws ke)
-  (make-world
-    (world-plane )
-    (world-fires ws)
-    (world-waters ws)
-    )
-    [(key=? ke "left") ws]
+  (cond
+    [(member ke DIRECTIONS)
+      (make-world
+        (make-plane 
+          (plane-x (world-plane ws))
+          ke
+          )
+        (world-fires ws)
+        (world-waters ws)
+        )]
+
+    [(key=? ke " ")
+     (make-world
+       (world-plane ws)
+       (world-fires ws)
+       (cons
+         (make-posn (plane-x (world-plane ws)) AEROPLANE-Y)
+         (world-waters ws)
+         ))]
+
+    [else ws]
+    ))
 
 
 ; WorldState -> WorldState
 ; Handles the ticking of the world
 (define (tock ws)
-  (make-world
-    (plane-tock (world-plane ws))
+  (tock-helper 
+    (world-plane ws)
     (world-fires ws)
     (world-waters ws)
     ))
 
 
+(define (tock-helper plane fires waters)
+  (make-world
+    (plane-tock plane)
+    (fires-tocks fires waters)
+    (waters-tock waters)
+    ))
+
+
+(define (waters-tock waters)
+  (cond
+    [(empty? waters) '()]
+    [(< (posn-y (first waters)) BACKGROUND-HEIGHT)
+      (cons
+        (translate-posn (first waters) 0 WATER-SPEED)
+        (waters-tock (rest waters))
+        )]
+    [else (waters-tock (rest waters))]
+    ))
+
+
+
+(define (fires-tocks fires waters)
+  (cond
+    [(empty? fires) '()]
+
+    [(fire-waters-collide? (first fires) waters) 
+     (fires-tocks (rest fires) waters)
+     ]
+
+    [else 
+      (cons
+        (first fires)
+        (fires-tocks (rest fires) waters)
+        )]))
+
+
+; Fire Waters -> Boolean
+; Returns whether the fire is being hit by any water
+(define (fire-waters-collide? fire waters)
+  (cond
+    [(empty? waters) #false]
+    [else
+      (or
+        (fire-water-collide? fire (first waters))
+        (fire-waters-collide? fire (rest waters))
+        )]))
+
+
+; Fire Water -> Boolean
+; Returns whether the water is hitting the fire
+(check-expect 
+  (fire-water-collide? 0 (make-posn COLLISION-DISTANCE FIRE-Y))
+  #true
+  )
+(check-expect 
+  (fire-water-collide? 0 (make-posn 100 COLLISION-DISTANCE))
+  #false
+  )
+(define (fire-water-collide? fire water)
+  (<=
+    (sqrt 
+      (+
+        (sqr (- fire (posn-x water)))
+        (sqr (- FIRE-Y (posn-y water)))
+        ))
+    COLLISION-DISTANCE
+    ))
+
+
 (define (plane-tock plane)
-  (make-plane
-    (+ 
-      (cond
-        [(string=? (plane-direction plane) "right") AEROPLANE-SPEED]
-        [(string=? (plane-direction plane) "left") (* -1 AEROPLANE-SPEED)]
-        )
-      (plane-x plane)
-      )
-    (plane-y plane)
+  (plane-tock-helper
+    (plane-x plane)
     (plane-direction plane)
+    ))
+
+
+; Same as plane-tock, but with bound names
+(define (plane-tock-helper x direction)
+  (make-plane
+    (cond
+      [(string=? direction "right") 
+       (if
+         (< x BACKGROUND-WIDTH)
+         (+ x AEROPLANE-SPEED)
+         (* -1 AEROPLANE-WIDTH)
+         )]
+
+      [(string=? direction "left") 
+       (if
+         (> x (* -1 AEROPLANE-WIDTH))
+         (- x AEROPLANE-SPEED)
+         BACKGROUND-WIDTH
+         )])
+
+    direction
     ))
 
 
@@ -103,6 +244,7 @@
     (+ (posn-x posn) x)
     (+ (posn-y posn) y)
     ))
+
 
 ; WorldState -> Boolean
 ; Predicate to define when the world comes to an end
@@ -132,8 +274,8 @@
 (test)
 (main 
   (make-world 
-    (make-plane 50 50 "right")
-    '()
+    (make-plane 0 "right")
+    (list 300)
     '()
     ))
 
