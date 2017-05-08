@@ -223,24 +223,28 @@
 
 ; Same as plane-tock, but with bound names
 (define (plane-tock-helper x direction)
-  (make-plane
-    (cond
-      [(string=? direction "right") 
-       (if
-         (< x BACKGROUND-WIDTH)
-         (+ x AEROPLANE-SPEED)
-         (* -1 AEROPLANE-WIDTH)
-         )]
+  (cond
+    [(> x (+ BACKGROUND-WIDTH AEROPLANE-WIDTH))
+     (make-plane
+       (sub1 (+ BACKGROUND-WIDTH AEROPLANE-WIDTH))
+       "left"
+       )]
 
-      [(string=? direction "left") 
-       (if
-         (> x (* -1 AEROPLANE-WIDTH))
-         (- x AEROPLANE-SPEED)
-         BACKGROUND-WIDTH
-         )])
+    [(< x (* -1 AEROPLANE-WIDTH))
+     (make-plane
+       (add1 (* -1 AEROPLANE-WIDTH))
+       "right"
+       )]
 
-    direction
-    ))
+    [else
+      (make-plane
+        (if 
+          (string=? direction "right")
+          (+ x AEROPLANE-SPEED)
+          (- x AEROPLANE-SPEED)
+          )
+        direction
+        )]))
 
 
 ; Posn Number Number -> Posn
