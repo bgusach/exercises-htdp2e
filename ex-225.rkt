@@ -17,7 +17,7 @@
 (define WATER-SPEED 10)
 (define FIRE (circle 20 "solid" "red"))
 (define FIRE-Y (- BACKGROUND-HEIGHT 10))
-(define COLLISION-DISTANCE 20)
+(define COLLISION-DISTANCE 30)
 
 
 ; ### Data Definitions
@@ -65,12 +65,10 @@
 ; Aeroplane Image -> Image
 ; Renders the plane on top of img
 (define (render-plane plane img)
-  (place-image/align
+  (place-image
     AEROPLANE
     (plane-x plane)
     AEROPLANE-Y
-    "left"
-    "top"
     img
     ))
 
@@ -97,8 +95,8 @@
     [else
       (place-image
         FIRE
-        FIRE-Y
         (first fires)
+        FIRE-Y
         (render-fires (rest fires) img)
         )]))
 
@@ -107,27 +105,21 @@
 ; Handles the key events
 (define (on-key-press ws ke)
   (cond
-    [(member ke DIRECTIONS)
-      (make-world
-        (make-plane 
-          (plane-x (world-plane ws))
-          ke
-          )
-        (world-fires ws)
-        (world-waters ws)
-        )]
-
-    [(key=? ke " ")
-     (make-world
-       (world-plane ws)
-       (world-fires ws)
-       (cons
-         (make-posn (plane-x (world-plane ws)) AEROPLANE-Y)
-         (world-waters ws)
-         ))]
-
+    [(key=? ke " ") (add-water ws)]
     [else ws]
     ))
+
+
+; WorldState -> WorldState
+; Throws a unit of water
+(define (add-water ws)
+  (make-world
+    (world-plane ws)
+    (world-fires ws)
+    (cons
+      (make-posn (plane-x (world-plane ws)) AEROPLANE-Y)
+      (world-waters ws)
+      )))
 
 
 ; WorldState -> WorldState
@@ -151,16 +143,19 @@
 (define (waters-tock waters)
   (cond
     [(empty? waters) '()]
+
     [(< (posn-y (first waters)) BACKGROUND-HEIGHT)
       (cons
         (translate-posn (first waters) 0 WATER-SPEED)
         (waters-tock (rest waters))
         )]
+
     [else (waters-tock (rest waters))]
     ))
 
 
-
+; Fires Waters -> Fires
+; Returns the list of fires that do not collide with any water
 (define (fires-tocks fires waters)
   (cond
     [(empty? fires) '()]
@@ -195,6 +190,14 @@
   #true
   )
 (check-expect 
+  (fire-water-collide? 100 (make-posn (+ COLLISION-DISTANCE 100) FIRE-Y))
+  #true
+  )
+(check-expect 
+  (fire-water-collide? 100 (make-posn (+ COLLISION-DISTANCE 100 1) FIRE-Y))
+  #false
+  )
+(check-expect 
   (fire-water-collide? 0 (make-posn 100 COLLISION-DISTANCE))
   #false
   )
@@ -209,6 +212,8 @@
     ))
 
 
+; Plane -> Plane
+; Handles the tick of the plane
 (define (plane-tock plane)
   (plane-tock-helper
     (plane-x plane)
@@ -275,7 +280,7 @@
 (main 
   (make-world 
     (make-plane 0 "right")
-    (list 300)
+    (list 450)
     '()
     ))
 
