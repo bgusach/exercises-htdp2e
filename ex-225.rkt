@@ -23,6 +23,7 @@
     ))
 (define FIRE (circle 20 "solid" "red"))
 (define FIRE-Y (- BACKGROUND-HEIGHT 10))
+(define FIRE-PROPAGATION-PROBABILITY 1)  ; 1% per tick
 (define COLLISION-DISTANCE 30)
 
 
@@ -83,6 +84,7 @@
     img
     ))
 
+
 ; PositiveNumber -> Image
 (define (render-water-tank n)
   (cond
@@ -90,6 +92,7 @@
     [else
       (beside WATER-THUMBNAIL (render-water-tank (sub1 n)))
       ]))
+
 
 ; Aeroplane Image -> Image
 ; Renders the plane on top of img
@@ -182,6 +185,7 @@
     ))
 
 
+; Waters -> Waters
 (define (waters-tock waters)
   (cond
     [(empty? waters) '()]
@@ -196,21 +200,59 @@
     ))
 
 
+(define (fires-tocks fires waters)
+  (reproduce-fires
+    (extinguish-fires fires waters)
+    ))
+
+
 ; Fires Waters -> Fires
 ; Returns the list of fires that do not collide with any water
-(define (fires-tocks fires waters)
+(define (extinguish-fires fires waters)
   (cond
     [(empty? fires) '()]
 
     [(fire-waters-collide? (first fires) waters) 
-     (fires-tocks (rest fires) waters)
+     (extinguish-fires (rest fires) waters)
      ]
 
     [else 
       (cons
         (first fires)
-        (fires-tocks (rest fires) waters)
+        (extinguish-fires (rest fires) waters)
         )]))
+
+
+(define (reproduce-fires fires)
+  (if
+    (empty? fires)
+    (make-random-fires 5)
+    (propagate-fires fires)
+    ))
+
+
+; Fires -> Fires
+(define (propagate-fires fires)
+  (cond
+    [(empty? fires) '()]
+
+    [else
+     (append 
+       (if 
+         (< (random 100) FIRE-PROPAGATION-PROBABILITY)
+         (propagate-fire (first fires))
+         (list (first fires))
+         )
+       (propagate-fires (rest fires)) 
+       )]))
+
+
+(define (propagate-fire fire)
+  (list
+    fire
+    (- fire 20)  ; TODO: extract constant
+    (+ fire 20)
+    ))
 
 
 ; Fire Waters -> Boolean
@@ -315,6 +357,18 @@
   )
 
 
+; Number -> Fires
+; Generates n random fires
+(define (make-random-fires n)
+  (cond 
+    [(zero? n) '()]
+    [else
+      (cons
+        (random BACKGROUND-WIDTH)
+        (make-random-fires (sub1 n))
+        )]))
+
+
 (define (main ws)
   (big-bang 
     ws
@@ -330,7 +384,7 @@
 (main 
   (make-world 
     (make-plane 0 "right" WATER-CAPACITY)
-    (list 450)
+    (make-random-fires 5)
     '()
     ))
 
