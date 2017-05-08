@@ -13,6 +13,7 @@
 (define AEROPLANE-WIDTH 100)
 (define AEROPLANE (rectangle AEROPLANE-WIDTH 40 "solid" "olive"))
 (define AEROPLANE-Y 100)
+(define WATER-CAPACITY 5)
 (define WATER (circle 20 "solid" "blue"))
 (define WATER-SPEED 10)
 (define FIRE (circle 20 "solid" "red"))
@@ -28,8 +29,10 @@
 ; or one of:
 (define DIRECTIONS (list "right" "left"))
 
-; Aeroplane is a structure (make-aeroplane x direction)
-(define-struct plane [x direction])
+; Aeroplane is a structure (make-aeroplane x direction deposit)
+; Interpretation: aeroplane is at x-position, moving towards direction
+; and has a water amount in its deposit
+(define-struct plane [x direction water])
 
 
 ; Fire is a Number representing its x-position
@@ -111,15 +114,28 @@
 
 
 ; WorldState -> WorldState
-; Throws a unit of water
+; Throws a unit of water if possible
 (define (add-water ws)
-  (make-world
-    (world-plane ws)
-    (world-fires ws)
-    (cons
-      (make-posn (plane-x (world-plane ws)) AEROPLANE-Y)
-      (world-waters ws)
-      )))
+  (if 
+    (positive? (plane-water (world-plane ws)))
+    (make-world
+      (subtract-plane-water (world-plane ws))
+      (world-fires ws)
+      (cons
+        (make-posn (plane-x (world-plane ws)) AEROPLANE-Y)
+        (world-waters ws)
+        ))
+    ws
+    ))
+
+
+; Plane -> Plane
+(define (subtract-plane-water plane)
+  (make-plane
+    (plane-x plane)
+    (plane-direction plane)
+    (sub1 (plane-water plane))
+    ))
 
 
 ; WorldState -> WorldState
@@ -218,22 +234,25 @@
   (plane-tock-helper
     (plane-x plane)
     (plane-direction plane)
+    (plane-water plane)
     ))
 
 
 ; Same as plane-tock, but with bound names
-(define (plane-tock-helper x direction)
+(define (plane-tock-helper x direction water)
   (cond
     [(> x (+ BACKGROUND-WIDTH AEROPLANE-WIDTH))
      (make-plane
        (sub1 (+ BACKGROUND-WIDTH AEROPLANE-WIDTH))
        "left"
+       WATER-CAPACITY
        )]
 
     [(< x (* -1 AEROPLANE-WIDTH))
      (make-plane
        (add1 (* -1 AEROPLANE-WIDTH))
        "right"
+       WATER-CAPACITY
        )]
 
     [else
@@ -244,6 +263,7 @@
           (- x AEROPLANE-SPEED)
           )
         direction
+        water
         )]))
 
 
@@ -283,7 +303,7 @@
 (test)
 (main 
   (make-world 
-    (make-plane 0 "right")
+    (make-plane 0 "right" WATER-CAPACITY)
     (list 450)
     '()
     ))
