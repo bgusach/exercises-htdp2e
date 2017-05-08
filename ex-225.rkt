@@ -16,6 +16,11 @@
 (define WATER-CAPACITY 5)
 (define WATER (circle 20 "solid" "blue"))
 (define WATER-SPEED 10)
+(define WATER-THUMBNAIL 
+  (overlay
+    (circle 8 "solid" "blue")
+    (circle 10 "solid" "transparent")
+    ))
 (define FIRE (circle 20 "solid" "red"))
 (define FIRE-Y (- BACKGROUND-HEIGHT 10))
 (define COLLISION-DISTANCE 30)
@@ -61,9 +66,30 @@
       (world-fires ws)
       (render-waters 
         (world-waters ws)
-        BACKGROUND
-        ))))
+        (render-info
+          ws
+          BACKGROUND
+          )))))
 
+
+; WorldState Image -> Image
+; Renders some game information
+(define (render-info ws img)
+  (overlay/align
+    "left"
+    "top"
+    ; Variadic, add as many as you want
+    (render-water-tank (plane-water (world-plane ws)))
+    img
+    ))
+
+; PositiveNumber -> Image
+(define (render-water-tank n)
+  (cond
+    [(zero? n) empty-image]
+    [else
+      (beside WATER-THUMBNAIL (render-water-tank (sub1 n)))
+      ]))
 
 ; Aeroplane Image -> Image
 ; Renders the plane on top of img
