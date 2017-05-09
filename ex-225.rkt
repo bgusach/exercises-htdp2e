@@ -24,6 +24,7 @@
 (define FIRE (circle 20 "solid" "red"))
 (define FIRE-Y (- BACKGROUND-HEIGHT 10))
 (define FIRE-PROPAGATION-PROBABILITY 1)  ; 1% per tick
+(define INITIAL-FIRE-DISTANCE 30)
 (define COLLISION-DISTANCE 30)
 
 
@@ -227,7 +228,8 @@
   (if
     (empty? fires)
     (make-random-fires 5)
-    (propagate-fires fires)
+    fires
+    ; (propagate-fires fires)
     ))
 
 
@@ -360,12 +362,49 @@
 ; Number -> Fires
 ; Generates n random fires
 (define (make-random-fires n)
+  (make-random-no-collision-fires n '())
+  )
+
+
+; Number Fires -> Fires
+(define (make-random-no-collision-fires n existing-fires)
   (cond 
     [(zero? n) '()]
     [else
       (cons
-        (random BACKGROUND-WIDTH)
-        (make-random-fires (sub1 n))
+        (make-random-no-collision-fire existing-fires)
+        (make-random-no-collision-fires (sub1 n) existing-fires)
+        )]))
+
+
+; Fires -> Fire
+(define (make-random-no-collision-fire existing-fires)
+  (check-fire (random BACKGROUND-WIDTH) existing-fires)
+  )
+
+
+; Fire Fires -> Fire
+(define (check-fire fire existing-fires)
+  (if 
+    (fire-collision? fire existing-fires)
+    (make-random-no-collision-fire existing-fires)
+    fire
+    ))
+
+
+; Fire Fires -> Boolean
+(check-expect (fire-collision? 50 '()) #false)
+(check-expect 
+  (fire-collision? INITIAL-FIRE-DISTANCE (list 0 0 0 0 0 (sub1 INITIAL-FIRE-DISTANCE)))
+  #true
+  )
+(define (fire-collision? fire existing-fires)
+  (cond
+    [(empty? existing-fires) #false]
+    [else
+      (or
+        (<= (abs (- (first existing-fires) fire)) INITIAL-FIRE-DISTANCE)
+        (fire-collision? fire (rest existing-fires))
         )]))
 
 
