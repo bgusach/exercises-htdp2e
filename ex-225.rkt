@@ -227,7 +227,8 @@
   (if
     (empty? fires)
     (make-random-fires 5)
-    (propagate-fires fires)
+    fires
+    ; (propagate-fires fires)
     ))
 
 
