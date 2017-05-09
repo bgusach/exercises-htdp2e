@@ -42,7 +42,9 @@
 (define-struct plane [x direction water])
 
 
-; Fire is a Number representing its x-position
+; Fire is a structure (make-fire x h)
+; Interpretation: position and height of fire
+(define-struct fire [x h])
 
 ; Fires is one of:
 ; - '()
@@ -126,11 +128,21 @@
   (cond
     [(empty? fires) img]
     [else
-      (place-image
-        FIRE
-        (first fires)
+      (place-image 
+        (render-fire (fire-h (first fires)))
+        (fire-x (first fires))
         FIRE-Y
         (render-fires (rest fires) img)
+        )]))
+
+
+(define (render-fire height)
+  (cond
+    [(zero? height) empty-image]
+    [else
+      (above 
+        FIRE 
+        (render-fire (sub1 height))
         )]))
 
 
@@ -228,8 +240,7 @@
   (if
     (empty? fires)
     (make-random-fires 5)
-    fires
-    ; (propagate-fires fires)
+    (propagate-fires fires)
     ))
 
 
@@ -237,24 +248,19 @@
 (define (propagate-fires fires)
   (cond
     [(empty? fires) '()]
-
     [else
-     (append 
-       (if 
-         (< (random 100) FIRE-PROPAGATION-PROBABILITY)
-         (propagate-fire (first fires))
-         (list (first fires))
-         )
-       (propagate-fires (rest fires)) 
-       )]))
-
-
-(define (propagate-fire fire)
-  (list
-    fire
-    (- fire 20)  ; TODO: extract constant
-    (+ fire 20)
-    ))
+      (cons
+        (make-fire
+          (fire-x (first fires))
+          (+
+            (fire-h (first fires))
+            (if
+              (<= (random 100) FIRE-PROPAGATION-PROBABILITY)
+              1
+              0
+              )))
+        (propagate-fires (rest fires))
+        )]))
 
 
 ; Fire Waters -> Boolean
@@ -272,26 +278,39 @@
 ; Fire Water -> Boolean
 ; Returns whether the water is hitting the fire
 (check-expect 
-  (fire-water-collide? 0 (make-posn COLLISION-DISTANCE FIRE-Y))
+  (fire-water-collide? 
+    (make-fire 0 #false) 
+    (make-posn COLLISION-DISTANCE FIRE-Y)
+    )
   #true
   )
 (check-expect 
-  (fire-water-collide? 100 (make-posn (+ COLLISION-DISTANCE 100) FIRE-Y))
+  (fire-water-collide? 
+    (make-fire 100 #false) 
+    (make-posn (+ COLLISION-DISTANCE 100) FIRE-Y)
+    )
   #true
   )
 (check-expect 
-  (fire-water-collide? 100 (make-posn (+ COLLISION-DISTANCE 100 1) FIRE-Y))
+  (fire-water-collide? 
+    (make-fire 100 #false) 
+    (make-posn (+ COLLISION-DISTANCE 100 1) FIRE-Y)
+    )
   #false
   )
 (check-expect 
-  (fire-water-collide? 0 (make-posn 100 COLLISION-DISTANCE))
+  (fire-water-collide? 
+    (make-fire 0 #false) 
+    (make-posn 100 COLLISION-DISTANCE)
+    )
   #false
   )
 (define (fire-water-collide? fire water)
   (<=
     (sqrt 
       (+
-        (sqr (- fire (posn-x water)))
+        ; TODO: use fire-height to detect collision
+        (sqr (- (fire-x fire) (posn-x water)))
         (sqr (- FIRE-Y (posn-y water)))
         ))
     COLLISION-DISTANCE
@@ -379,8 +398,10 @@
 
 ; Fires -> Fire
 (define (make-random-no-collision-fire existing-fires)
-  (check-fire (random BACKGROUND-WIDTH) existing-fires)
-  )
+  (check-fire 
+    (make-fire (random BACKGROUND-WIDTH) 1) 
+    existing-fires
+    ))
 
 
 ; Fire Fires -> Fire
@@ -393,9 +414,14 @@
 
 
 ; Fire Fires -> Boolean
-(check-expect (fire-collision? 50 '()) #false)
+(check-expect (fire-collision? (make-fire 50 0) '()) #false)
 (check-expect 
-  (fire-collision? INITIAL-FIRE-DISTANCE (list 0 0 0 0 0 (sub1 INITIAL-FIRE-DISTANCE)))
+  (fire-collision? 
+    (make-fire INITIAL-FIRE-DISTANCE #false)
+    (list 
+      (make-fire 0 0) 
+      (make-fire (sub1 INITIAL-FIRE-DISTANCE) 0)
+      ))
   #true
   )
 (define (fire-collision? fire existing-fires)
@@ -403,7 +429,10 @@
     [(empty? existing-fires) #false]
     [else
       (or
-        (<= (abs (- (first existing-fires) fire)) INITIAL-FIRE-DISTANCE)
+        (<= 
+          (abs (- (fire-x (first existing-fires)) (fire-x fire)))
+          INITIAL-FIRE-DISTANCE
+          )
         (fire-collision? fire (rest existing-fires))
         )]))
 
