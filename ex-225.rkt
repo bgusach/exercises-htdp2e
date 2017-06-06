@@ -128,10 +128,12 @@
   (cond
     [(empty? fires) img]
     [else
-      (place-image 
+      (place-image/align
         (render-fire (fire-h (first fires)))
         (fire-x (first fires))
         FIRE-Y
+        "middle"
+        "bottom"
         (render-fires (rest fires) img)
         )]))
 
