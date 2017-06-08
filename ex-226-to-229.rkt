@@ -94,12 +94,13 @@
        (transition-current (first fsm)) 
        current
        )
-       (transition-next (first fsm))
+     (transition-next (first fsm))
      ]
     [else (find-next-state (rest fsm) current)]
     ))
 
 ; =================== End of exercise ==================
+
 
 ; SimulationState.v2 -> Image
 (define (render-world world)
@@ -114,8 +115,68 @@
     [on-key on-key-press]
     ))
 
+; (main fsm-traffic "red")
+; (main bw-traffic "black")
 
+
+; ==================== Exercise 229 ====================
+; ### Data Definitions
+
+(define-struct ktransition [current key next])
+; A Transition.v2 is a structure:
+;   (make-ktransition FSM-State KeyEvent FSM-State)
+
+; A FSM.v2 is one of:
+; - '()
+; - (cond Transition.v2 FSM.v2)
+
+
+(define ex-109-fsm 
+  (list
+    (make-ktransition "white" "a" "yellow")
+    (make-ktransition "yellow" "b" "yellow")
+    (make-ktransition "yellow" "c" "yellow")
+    (make-ktransition "yellow" "d" "green")
+    ))
+
+
+; SimulationState.v3 is a structure: (make-fs FSM.v2 FSM-State)
+
+
+; FSM.v2 FSM-State KeyEvent -> FSM-State
+(define (find-next-state.v2 fsm current ke)
+  (cond
+    [(empty? fsm) current]
+    [(and
+       (state=?  (ktransition-current (first fsm)) current)
+       (key=? (ktransition-key (first fsm)) ke)
+       )
+
+       (ktransition-next (first fsm))
+     ]
+    [else (find-next-state.v2 (rest fsm) current ke)]
+    ))
+
+
+; SimulationState.v3 KeyEvent -> SimulationState.v3
+(define (on-key-press.v2 ws ke)
+  (make-fs
+    (fs-fsm ws)
+    (find-next-state.v2 (fs-fsm ws) (fs-current ws) ke)
+    ))
+
+
+; =================== End of exercise ==================
+
+
+; FSM FSM-State -> SimulationState.v2
+(define (main.v2 a-fsm state-0)
+  (big-bang 
+    (make-fs a-fsm state-0)
+    [to-draw render-world]
+    [on-key on-key-press.v2]
+    ))
+
+(main.v2 ex-109-fsm "white")
 (test)
-(main fsm-traffic "red")
-(main bw-traffic "black")
 
