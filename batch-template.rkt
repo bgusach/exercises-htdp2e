@@ -1,4 +1,4 @@
-#lang htdp/bsl+
+#lang htdp/isl
 
 (require test-engine/racket-tests)
 
