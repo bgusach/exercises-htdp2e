@@ -22,47 +22,60 @@
 
 ; ### Functions
 
-(define (abstract lon comp)
+; List-of-Number (Number Number -> Boolean) -> Number
+; Given a non empty list of numbers and a function that
+; inputs two numbers and returns #true if the first
+; number "wins" over the second, and #false otherwise
+; it returns the "winner" of the list
+(define (get-winner lon comp)
   (cond
     [(empty? (rest lon)) (first lon)]
     [else
       (if 
-        (comp (first lon) (abstract (rest lon) comp))
+        (comp (first lon) (get-winner (rest lon) comp))
         (first lon)
-        (abstract (rest lon) comp)
+        (get-winner (rest lon) comp)
         )]))
 
 
+; NEList-of-Number -> Number
+; Returns the smallest item of a non empty list of numbers
 (check-expect (inf-1 (list 10 5 2)) 2)
 (define (inf-1 lon)
-  (abstract lon <)
+  (get-winner lon <)
   )
 
+; NEList-of-Number -> Number
+; Returns the greatest item of a non empty list of numbers
 (check-expect (sup-1 (list 23 24 25)) 25)
 (define (sup-1 lon)
-  (abstract lon >)
+  (get-winner lon >)
   )
 
 
-(define (abstract-2 lon reducer)
+; List-of-Number (Number Number -> Number) -> Number
+; Given a non empty list of numbers and a function that
+; inputs two numbers and returns the "winner"
+; it returns the "winner" of the list
+(define (get-winner-2 lon reducer)
   (cond
     [(empty? (rest lon)) (first lon)]
     [else
       (reducer
         (first lon)
-        (abstract-2 (rest lon) reducer)
+        (get-winner-2 (rest lon) reducer)
         )]))
 
 
 (check-expect (inf-2 (list 10 5 2)) 2)
 (define (inf-2 lon)
-  (abstract-2 lon min)
+  (get-winner-2 lon min)
   )
 
 
 (check-expect (sup-2 (list 10 5 2)) 10)
 (define (sup-2 lon)
-  (abstract-2 lon max)
+  (get-winner-2 lon max)
   )
 
 "(inf-1 long-list-1))"
