@@ -48,9 +48,11 @@
   (scene+line
     (scene+line
       (scene+line BACKGROUND 20 10 20 20 "red")
-      20 20 30 20 "red")
-    30 20 20 10 "red")
-  )
+      20 20 30 20 "red"
+      )
+    30 20 20 10 "red"
+    ))
+
 
 ; Image Polygon -> Image
 (check-expect (render-poly BACKGROUND triangle-p) rendered-triangle-p)
