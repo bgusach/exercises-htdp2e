@@ -1,7 +1,5 @@
 #lang htdp/isl
 
-(require test-engine/racket-tests)
-
 ; ### Functions
 
 ; [Number -> Boolean]
@@ -35,7 +33,4 @@ negative?
 (define (contains-42 lon)
   (member 42 lon)
   )
-
- 
-(test)
 
