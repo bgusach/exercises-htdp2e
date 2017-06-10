@@ -25,15 +25,16 @@
   (fold1 l * 1)
   )
 
-; [List-of A] [A B -> B] -> B
-(define (fold1 items fold-fn acc)
+
+; [List-of Number] [Number Number -> Number] Number -> Number
+(define (fold1 items fold-fn accumulator)
   (cond
-    [(empty? items) acc]
+    [(empty? items) accumulator]
     [else
       (fold1
         (rest items)
         fold-fn
-        (fold-fn (first items) acc)
+        (fold-fn (first items) accumulator)
         )]))
 
 
