@@ -16,6 +16,8 @@ Designing with Abstraction Recipe
       goes into the ``local`` expresion (what gets returned, or if
       you annotate it, into the ``; -- IN --`` part),
       and the helper in the local definitions.
+      However, if the function is rather simple, probably a
+      lambda expression is more readable.
     - No: define the helper at top-level.
 
 - Write down the helper signature, purpose and header.
