@@ -1,4 +1,4 @@
-#lang htdp/bsl+
+#lang htdp/isl
 
 (require 2htdp/image)
 (require 2htdp/universe)
@@ -17,7 +17,8 @@
     "middle"
     "bottom"
     GROUND
-    (rectangle BACKGROUND-W BACKGROUND-H "solid" "skyblue")))
+    (rectangle BACKGROUND-W BACKGROUND-H "solid" "skyblue")
+    ))
 
 (define MISSILE-H 15)
 (define MISSILE (triangle MISSILE-H "solid" "red"))
@@ -34,6 +35,8 @@
     (rectangle TANK-W TANK-H "solid" "blue")
     ))
 
+(define TANK-Y (- BACKGROUND-H TANK-H))
+
 (define UFO-W 30)
 (define UFO-H 5)
 (define UFO-R 10)
@@ -42,8 +45,13 @@
 (define UFO
   (overlay
     (rectangle UFO-W UFO-H "solid" "green")
-    (circle UFO-R "solid" "olive")))
+    (circle UFO-R "solid" "olive")
+    ))
 
+(define CHARGE-R 7)
+(define CHARGE (circle CHARGE-R "solid" "blue"))
+(define CHARGE-SPEED 7)
+(define CHARGE-SHOOT-PROBABILITY 30)  ; 1 out of ... ticks
 
 
 ; ### Data Definitions
@@ -57,22 +65,17 @@
 ;   position (x, BACKGROUND-H)
 ;   speed dx pixels/tick
 
-; a Missile is a structure (make-missile x y)
-; where x, y are its coordinates
-(define-struct missile [x y])
 
-; a MissileList is one of:
-; - '()
-; - (cons Missile MissileList)
-;
-; Interpretation: missiles in the air
+; A Missile is a Posn
+; A Charge is a Posn
 
 
 ; SIGS (space invaders game state) is a structure
-; (make-sigs UFO Tank MissileList)
+; (make-sigs UFO Tank [List-of Missile] [List-of Charge])
 ; interpretation: represents the possitions of the ufo,
-; the tank and the missiles in the air
-(define-struct sigs [ufo tank missiles])
+; the tank, the missiles (shot by the tank) and the
+; charges (shot by the ufo)
+(define-struct sigs [ufo tank missiles charges])
 
 
 ; ### Functions
@@ -85,15 +88,18 @@
       (sigs-tank ws)
       (render-missiles
         (sigs-missiles ws)
-        BACKGROUND
-        ))))
+        (render-charges
+          (sigs-charges ws)
+          BACKGROUND
+          )))))
 
 
 ; Calculates the missile position from a tank when it has not been fired yet
 (define (stand-by-missile tank)
   (make-posn 
     (tank-pos tank)
-    (- BACKGROUND-H TANK-H 15)))
+    (- BACKGROUND-H TANK-H 15)
+    ))
 
 
 ; Tank Image -> Image
@@ -102,32 +108,58 @@
   (place-image 
     TANK
     (tank-pos tank)
-    (- BACKGROUND-H TANK-H)
-    img))
+    TANK-Y
+    img
+    ))
 
 
 ; sUFO Image -> Image
 ; adds a ufo image to the passed image
 (define (render-ufo ufo img)
-  (place-image
-    UFO
-    (posn-x ufo)
-    (posn-y ufo)
-    img))
+  (place-image UFO (posn-x ufo) (posn-y ufo) img)
+  )
+
+
+; Missile Image -> Image
+; Renders the missile on top of the image
+(define (render-missile mis img)
+  (place-image MISSILE (posn-x mis) (posn-y mis) img)
+  )
 
 
 ; MissileList Image -> Image
 ; adds missiles image to the passed image
 (define (render-missiles missiles img)
-  (cond
-    [(empty? missiles) img]
-    [else
-      (place-image
-        MISSILE
-        (posn-x (first missiles))
-        (posn-y (first missiles))
-        img
-        )]))
+  (foldl render-missile img missiles)
+  )
+
+
+; Charge Image -> Image
+; Renders charge on top of img
+(define (render-charge charge img)
+ (place-image CHARGE (posn-x charge) (posn-y charge) img)
+ )
+
+
+; [List-of Charge] Image -> Image
+(define (render-charges charges img)
+  (render-posns render-charge charges img)
+  )
+
+
+; [Posn -> Image] [List-of Posn] -> Image
+; Given a posns list and a function to render each, it renders
+; all of them on top of img
+(define (render-posns render-posn posns img)
+  (local
+    (; Posn Image -> Image
+     (define (reduce posn img)
+       (render-posn posn img)
+       ))
+
+    ; -- IN --
+    (foldl reduce img posns)
+    ))
 
 
 ; SIGS -> Image
@@ -139,40 +171,81 @@
     (/ BACKGROUND-H 2)
     "center"
     "center"
-    (render-world ws)))
+    (render-world ws)
+    ))
 
 
 ; SIGS -> Boolean
 ; Returns whether the game is over
-; If the UFO has landed or the missile has hit the UFO, the game is over
 (define (si-game-over ws)
   (or
      (ufo-landed (sigs-ufo ws))
-     (missile-hitting (sigs-missiles ws) (sigs-ufo ws))))
+     (any-missile-hitting? (sigs-missiles ws) (sigs-ufo ws))
+     (any-charge-hitting? (sigs-charges ws) (sigs-tank ws))
+     ))
 
 
 ; sUFO -> Boolean
 ; Returns whether the UFO has landed
 (define (ufo-landed ufo)
-  (>= (posn-y ufo) BACKGROUND-H))
+  (>= (posn-y ufo) BACKGROUND-H)
+  )
 
 
 ; sUFO Missile -> Boolean
 ; Returns whether the missile is hitting the UFO
-(check-expect (missile-hitting '() (make-posn 0 0)) #false)
+(check-expect (any-missile-hitting? '() (make-posn 0 0)) #false)
 (check-expect 
-  (missile-hitting (list (make-posn 0 0) (make-posn 5 5)) (make-posn 5 5))
+  (any-missile-hitting? (list (make-posn 0 0) (make-posn 5 5)) (make-posn 5 5))
   #true
   )
-(define (missile-hitting missiles ufo)
-  (cond
-    [(empty? missiles) #false]
-    [else
+(define (any-missile-hitting? missiles ufo)
+  (local
+    (; Missile -> Boolean
+     ; Returns whether the missile is hitting the ufo
+     (define (hitting-ufo? missile)
+       (<= (euc-distance missile ufo) UFO-R)
+       ))
+
+    ; -- IN --
+    (ormap hitting-ufo? missiles)
+    ))
+
+; [List-of Charge] Tank -> Boolean
+(define (any-charge-hitting? charges tank)
+  (local
+    (; Charge -> Boolean
+     ; Returns whether the charge is hitting the tank
+     (define (hitting-tank? charge)
+       (<= 
+         (euc-distance 
+           charge
+           (make-posn (tank-pos tank) TANK-Y)
+           ) 
+         TANK-H
+         )))
+
+    ; -- IN --
+    (ormap hitting-tank? charges)
+    ))
+
+
+; UFO [List-of Posn] -> [List-of Posn]
+; Moves charges, and shoots another one
+; once in a while
+(define (handle-charges ufo charges)
+  (local
+    ((define 
+      new-charges
       (if
-        (<= (euc-distance (first missiles) ufo) UFO-R)
-        #true
-        (missile-hitting (rest missiles) ufo)
-        )]))
+        (zero? (random CHARGE-SHOOT-PROBABILITY))
+        (cons (make-posn (posn-x ufo) (posn-y ufo)) charges)
+        charges
+        )))
+
+    ; -- IN --
+    (translate-posns new-charges 0 CHARGE-SPEED)
+    ))
 
 
 ; Posn Posn -> Number
@@ -191,38 +264,42 @@
     (move-ufo (sigs-ufo ws))
     (move-tank (sigs-tank ws))
     (move-missiles (sigs-missiles ws))
+    (handle-charges (sigs-ufo ws) (sigs-charges ws))
     ))
 
 
-; MissileList -> MissileList
+; [List-of Posn] Number Number -> [List-of Posn]
+; Translates the posns by x, y
+(define (translate-posns posns x y)
+  (local
+    (; Posn -> Posn
+     ; Moves posn by x and y
+     (define (translate posn)
+       (move-posn posn x y)
+       ))
+
+    ; -- IN --
+    (map translate posns)
+    ))
+
+; [List-of Missile] -> [List-of Missile]
 ; moves the list of missiles
 (check-expect 
   (move-missiles (list (make-posn 0 0)))
   (list (make-posn 0 MISSILE-SPEED))
   )
 (define (move-missiles missiles)
-  (cond
-    [(empty? missiles) '()]
-    [else
-      (cons 
-        (move-posn (first missiles) 0 MISSILE-SPEED)
-        (move-missiles (rest missiles))
-        )]))
+  (translate-posns missiles 0 MISSILE-SPEED)
+  )
 
 
 ; sUFO -> sUFO
 (define (move-ufo ufo)
-  (make-posn
-    (+ 
-      (posn-x ufo)
-      (*
-        (if (= (random 2) 0) 1 -1)
-        (random UFO-DRIFT)
-        ))
-    (+ 
-      (posn-y ufo) 
-      UFO-SPEED
-      )))
+  (move-posn
+    ufo
+    (* (if (= (random 2) 0) 1 -1) (random UFO-DRIFT))
+    UFO-SPEED
+    ))
 
 
 ; Tank -> Tank
@@ -234,7 +311,9 @@
     (cond
       [(< (tank-vel tank) 0) (+ (tank-vel tank) TANK-ACC)]
       [(> (tank-vel tank) 0) (- (tank-vel tank) TANK-ACC)]
-      [else (tank-vel tank)])))
+      [else (tank-vel tank)]
+      )))
+
 
 ; Posn Number Number -> Posn
 ; Adds the offsets x and y to the Posn and returns a new one
@@ -244,7 +323,8 @@
 (define (move-posn p x y)
   (make-posn 
     (+ (posn-x p) x)
-    (+ (posn-y p) y)))
+    (+ (posn-y p) y)
+    ))
 
 
 ; SIGS key-event? -> SIGS
@@ -258,7 +338,9 @@
        (cons
          (stand-by-missile (sigs-tank ws))
          (sigs-missiles ws)
-         ))]
+         )
+       (sigs-charges ws)
+       )]
 
     [(key=? ke "left") 
        (make-sigs
@@ -266,7 +348,9 @@
          (make-tank
            (tank-pos (sigs-tank ws))
            (change-sign TANK-MAX-SPEED))
-         (sigs-missiles ws))]
+         (sigs-missiles ws)
+         (sigs-charges ws)
+         )]
 
     [(key=? ke "right") 
        (make-sigs
@@ -274,9 +358,12 @@
          (make-tank
            (tank-pos (sigs-tank ws))
            TANK-MAX-SPEED)
-         (sigs-missiles ws))]
+         (sigs-missiles ws)
+         (sigs-charges ws)
+         )]
 
-    [else ws]))
+    [else ws]
+    ))
 
 
 ; Number -> Number
@@ -301,5 +388,6 @@
   (make-sigs 
     (make-posn (random BACKGROUND-W) 20) 
     (make-tank 200 0) 
+    '()
     '()
     ))
