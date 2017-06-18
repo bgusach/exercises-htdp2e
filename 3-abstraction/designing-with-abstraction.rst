@@ -8,12 +8,13 @@ Designing with Abstraction Recipe
   of which purpose is more general than ours. It helps to start with
   the output
 
-- Analyze if the helper function for the abstraction. Is it so 
+- Analyze the helper function for the abstraction. Is it so 
   specific that only makes sense within the function being 
   designed?
 
     - Yes: write down a template using ``local``. The abstraction 
-      goes into the ``local`` expresion (what gets returned),
+      goes into the ``local`` expresion (what gets returned, or if
+      you annotate it, into the ``; -- IN --`` part),
       and the helper in the local definitions.
     - No: define the helper at top-level.
 
