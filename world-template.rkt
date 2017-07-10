@@ -1,4 +1,4 @@
-#lang htdp/isl
+#lang htdp/isl+
 
 (require 2htdp/image)
 (require 2htdp/universe)
