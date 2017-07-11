@@ -2,6 +2,7 @@
 
 (require test-engine/racket-tests)
 (require 2htdp/abstraction)
+(require racket/list)
 
 
 ; ### Data Definitions
@@ -79,18 +80,17 @@
 
 ; FT -> Number
 ; Calculates the average age in the tree
-(check-expect (average-age Carl) 91)
-(check-expect (average-age Adam) 83)
-(define (average-age tree)
+(check-expect (average-age Carl 2017) 91)
+(check-expect (average-age Adam 2017) 83)
+(define (average-age tree curr-year)
   (local
     ((define family-line (extract-nodes tree))
-     (define this-year 2017)
      )
 
     ; -- IN --
     (/
       (for/sum ([node family-line])
-        (- this-year (child-date node)))
+        (- curr-year (child-date node)))
 
       (length family-line)
       )))
@@ -101,7 +101,7 @@
 
 
 
-; ==================== Exercise 312====================
+; ==================== Exercise 312 ====================
 ; ### Functions
 
 
@@ -123,8 +123,7 @@
 ; A: because no clause ever returns #true. There is no check 
 ;    for colour anywhere. 
 
-;    The following function works. It is however kind of clumsy, 
-;    and another version of the func. can be found further down.
+;    The following function works. A version .v2 is also available
 
 
 ; ### Functions
@@ -138,24 +137,25 @@
   (cond
     [(no-parent? a-ftree) #false]
     [else
-      (local
-        ((define ma (child-mother a-ftree))
-         (define has-ma (child? ma))
-         (define pa (child-father a-ftree))
-         (define has-pa (child? pa))
-         )
-
-         ; -- IN --
-         (or
-           (and has-pa (or (blue-eyed? pa) (blue-eyed-ancestor? pa)))
-           (and has-ma (or (blue-eyed? ma) (blue-eyed-ancestor? ma)))
-           ))]))
+      (or
+        (blue-eyed-child? (child-mother a-ftree))
+        (blue-eyed-child? (child-father a-ftree))
+        )]))
 
 
 ; FT -> Boolean
-(define (blue-eyed? node)
-  (string=? (child-eyes node) "blue")
-  )
+; Does a-ftree contain a child with "blue" eyes?
+(check-expect (blue-eyed-child? Carl) #false)
+(check-expect (blue-eyed-child? Gustav) #true)
+(define (blue-eyed-child? a-ftree)
+  (cond
+    [(no-parent? a-ftree) #false]
+    [else 
+      (or 
+        (string=? (child-eyes a-ftree) "blue")
+        (blue-eyed-child? (child-father a-ftree))
+        (blue-eyed-child? (child-mother a-ftree))
+        )]))
 
 
 ; FT -> Boolean
@@ -178,6 +178,58 @@
 
 ; =================== End of exercise ==================
 
+
+
+; ==================== Exercise 314 ====================
+; ### Data Definitions
+
+; a FF is a [List-of FT]
+
+; ### Constants
+(define ff1 (list Carl Bettina))
+(define ff2 (list Fred Eva))
+(define ff3 (list Fred Eva Carl))
+
+
+; ### Functions
+; FF -> Boolean
+; Returns whether the forest contain any child with "blue" eyes
+(check-expect (blue-eyed-child-in-forest? ff1) #false)
+(check-expect (blue-eyed-child-in-forest? ff2) #true)
+(check-expect (blue-eyed-child-in-forest? ff3) #true)
+(define (blue-eyed-child-in-forest? a-forest)
+  (ormap blue-eyed-child? a-forest)
+  )
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 315 ====================
+
+; ### Functions
+; FF Number -> Number
+; Returns the average age of the forest
+(check-expect (average-forest-age ff1 2017) 91)
+(check-expect (average-forest-age ff2 2017) 71.25)
+(define (average-forest-age a-forest curr-year)
+  (local
+    ((define all-nodes
+       (flatten
+         (for/list ([ft a-forest]) (extract-nodes ft))
+         ))
+     (define all-dates (map child-date all-nodes))
+     (define all-ages (for/list ([year all-dates]) (- curr-year year)))
+     )
+
+     ; -- IN --
+     (/ 
+       (foldl + 0 all-ages)
+       (length all-nodes)
+       )))
+
+; =================== End of exercise ==================
 
 (test)
 
