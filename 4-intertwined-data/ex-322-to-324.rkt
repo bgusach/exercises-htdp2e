@@ -96,5 +96,96 @@
 ; =================== End of exercise ==================
 
 
+
+
+; ==================== Exercise 324 ====================
+
+(define twelve-leaf
+  (make-node 12 'ppp NONE NONE)
+  )
+
+(define four-leaf
+  (make-node 4 'ppp NONE NONE)
+  )
+
+(define bst0
+  (make-node
+    5
+    'd
+    (make-node 
+      3
+      'h
+      (make-node 2 'ppp NONE NONE)
+      four-leaf
+      )
+    (make-node 
+      10
+      'x
+      (make-node 8 'ppp NONE NONE)
+      twelve-leaf
+      )))
+
+; bst0
+;                5
+;                |
+;        +-------+-------+
+;        |               |
+;        3               10
+;        |               |
+;   +----+----+     +----+----+
+;   |         |     |         |
+;   2         4     8         12
+; 
+
+
+
+; BT -> [List-of Number]
+(check-expect (inorder NONE) '())
+(check-expect (inorder (make-node 5 'x NONE NONE)) '(5))
+(check-expect (inorder tree1) '(87 15))
+(check-expect (inorder bst0) '(2 3 4 5 8 10 12))
+(define (inorder bst)
+  (cond
+    [(no-info? bst) '()]
+    [else
+      (append
+        (inorder (node-left bst))
+        (list (node-ssn bst))
+        (inorder (node-right bst))
+	)]))
+
+; Q: What does inorder produce for a binary search tree?
+; A: A perfectly sorted list (as shown in last test)
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 325 ====================
+
+; Number BST -> BST
+; Finds a node in `bst` that matches `n`, or returns NONE
+(check-expect (search-bst 7 NONE) NONE)
+(check-expect (search-bst 9 bst0) NONE)
+(check-expect (search-bst 12 bst0) twelve-leaf)
+(check-expect (search-bst 4 bst0) four-leaf)
+(define (search-bst n bst)
+  (cond
+    [(no-info? bst) NONE]
+    [else
+      (local 
+	((define this-ssn (node-ssn bst)))
+
+	; -- IN --
+	(cond 
+          [(= n this-ssn) bst]
+	  [(< n this-ssn) (search-bst n (node-left bst))]
+	  [(> n this-ssn) (search-bst n (node-right bst))]
+          ))]))
+
+
+; =================== End of exercise ==================
+
 (test)
 
