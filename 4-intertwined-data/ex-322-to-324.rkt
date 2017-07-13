@@ -187,5 +187,29 @@
 
 ; =================== End of exercise ==================
 
+
+
+
+; ==================== Exercise 326 ====================
+
+; BST N Symbol -> BST
+; Given a BST, it extends it with the new `ssn` and `name`
+(check-expect (create-bst NONE 43 'lol) (make-node 43 'lol NONE NONE))
+(define (create-bst bst ssn name)
+  (local
+    ((define new-node (make-node ssn name NONE NONE)))
+    
+    ; -- IN --
+    (cond
+      [(no-info? bst) new-node]
+      [else
+	(cond
+	  [()]
+	  )
+	]
+    )))
+
+
+; =================== End of exercise ==================
 (test)
 
