@@ -109,18 +109,12 @@
   )
 
 (define bst0
-  (make-node
-    5
-    'd
-    (make-node 
-      3
-      'h
+  (make-node 5 'd
+    (make-node 3 'h
       (make-node 2 'ppp NONE NONE)
       four-leaf
       )
-    (make-node 
-      10
-      'x
+    (make-node 10 'x
       (make-node 8 'ppp NONE NONE)
       twelve-leaf
       )))
@@ -175,14 +169,14 @@
     [(no-info? bst) NONE]
     [else
       (local 
-	((define this-ssn (node-ssn bst)))
+        ((define this-ssn (node-ssn bst)))
 
-	; -- IN --
-	(cond 
+        ; -- IN --
+        (cond 
           [(= n this-ssn) bst]
-	  [(< n this-ssn) (search-bst n (node-left bst))]
-	  [(> n this-ssn) (search-bst n (node-right bst))]
-          ))]))
+          [(< n this-ssn) (search-bst n (node-left bst))]
+          [(> n this-ssn) (search-bst n (node-right bst))]
+            ))]))
 
 
 ; =================== End of exercise ==================
@@ -192,24 +186,150 @@
 
 ; ==================== Exercise 326 ====================
 
+(define big-bst
+  (make-node 63 'x
+    (make-node 29 'x
+      (make-node 15 'x
+        (make-node 10 'x NONE NONE)
+        (make-node 24 'x NONE NONE)
+        )
+      NONE
+      )
+    (make-node 89 'x
+      (make-node 77 'x NONE NONE)
+      (make-node 95 'x
+        NONE
+        (make-node 99 'x NONE NONE)
+        ))))
+
+
 ; BST N Symbol -> BST
 ; Given a BST, it extends it with the new `ssn` and `name`
 (check-expect (create-bst NONE 43 'lol) (make-node 43 'lol NONE NONE))
+(check-expect 
+  (create-bst twelve-leaf 43 'lol) 
+  (make-node 12 'ppp
+    NONE 
+    (make-node 43 'lol NONE NONE)
+    ))
+(check-expect 
+  (create-bst
+    (make-node 5 'x
+      (make-node 3 'x NONE NONE)
+      NONE
+      )
+    1 
+    'x
+    )
+  (make-node 5 'x
+    (make-node 3 'x
+      (make-node 1 'x NONE NONE)
+      NONE
+      )
+    NONE
+    ))
+(check-expect
+  (create-bst bst0 1 'x)
+  (make-node 5 'd
+    (make-node 3 'h
+      (make-node 2 'ppp 
+        (make-node 1 'x NONE NONE)
+        NONE
+        )
+      four-leaf
+      )
+    (make-node 10 'x
+      (make-node 8 'ppp NONE NONE)
+      twelve-leaf
+      )))
+; Example from Figure 115
+(check-expect
+  (create-bst big-bst 75 'x)
+  (make-node 63 'x
+    (make-node 29 'x
+      (make-node 15 'x
+        (make-node 10 'x NONE NONE)
+        (make-node 24 'x NONE NONE)
+        )
+      NONE
+      )
+    (make-node 89 'x
+      (make-node 77 'x 
+        (make-node 75 'x NONE NONE)
+        NONE
+        )
+      (make-node 95 'x
+        NONE
+        (make-node 99 'x NONE NONE)
+        ))))
 (define (create-bst bst ssn name)
-  (local
-    ((define new-node (make-node ssn name NONE NONE)))
-    
-    ; -- IN --
-    (cond
-      [(no-info? bst) new-node]
-      [else
-	(cond
-	  [()]
-	  )
-	]
-    )))
+  (cond
+    [(no-info? bst) (make-node ssn name NONE NONE)]
+    [else
+      (local
+        ((define this-ssn (node-ssn bst))
+         (define this-name (node-name bst))
+         (define left (node-left bst))
+         (define right (node-right bst))
+         )
 
+        ; -- IN --
+        (cond
+          [(< ssn this-ssn) 
+           (make-node 
+             this-ssn 
+             this-name 
+             (create-bst left ssn name)
+             right
+             )]
+          [(> ssn this-ssn) 
+           (make-node 
+             this-ssn 
+             this-name 
+             left 
+             (create-bst right ssn name)
+             )]))]))
 
 ; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 327 ====================
+
+; ### Functions
+; [List-of [List Number Symbol]] -> BST
+; Creates a BST from a list of social security numbers
+(check-expect 
+  (create-bst-from-list '((10 x))) 
+  (make-node 10 'x NONE NONE)
+  )
+(check-expect 
+  (create-bst-from-list '((10 x) (20 x) (2 x) (7 x))) 
+  (make-node 10 'x 
+    (make-node 2 'x
+      NONE 
+      (make-node 7 'x NONE NONE)
+      )
+    (make-node 20 'x NONE NONE)
+    ))
+(define (create-bst-from-list pairs)
+  (foldl
+    (λ (pair acc) (create-bst acc (first pair) (second pair)))
+    NONE
+    pairs
+    ))
+
+; Q: if create-bst-from-list is applied to 
+;    '((99 o) (77 l) (24 i) (10 h) (95 g) (15 d) (89 c) (29 b) (63 a))
+;    you may get the tree of Figure 115, but inverted. Why?
+;
+; A: we do get the inverted tree here. This happens because we are processing
+;    the items from left to right with foldl. If foldr is used instead,
+;    the BST matches exactly the one of figure 115. Alternatively, the
+;    list can be reversed before being passed to the function.
+
+; =================== End of exercise ==================
+
 (test)
 
