@@ -128,19 +128,19 @@
 
 ; S-expr Symbol Symbol -> N 
 ; Replaces all the occurrences of `old` with `new`
-(check-expect (replace "hello" 'a 'b) "hello")
+(check-expect (substitute "hello" 'a 'b) "hello")
 (check-expect 
-  (replace '(hello world) 'hello 'hola)
+  (substitute '(hello world) 'hello 'hola)
   '(hola world)
   )
 (check-expect 
-  (replace '((world) hello) 'hello 'hola) 
+  (substitute '((world) hello) 'hello 'hola) 
   '((world) hola)
   )
-(define (replace sexp old new)
+(define (substitute sexp old new)
   (local
     (; Atom -> Atom
-     (define (replace-atom atom)
+     (define (substitute-atom atom)
      (if 
        (and (symbol? atom) (symbol=? atom old))
        new
@@ -148,22 +148,22 @@
        ))
 
      ; SL -> SL
-     (define (replace-sl sl)
+     (define (substitute-sl sl)
        (match
          sl
          ['() '()]
          [(cons head tail)
           (cons
-            (replace head old new)
-            (replace-sl tail)
+            (substitute head old new)
+            (substitute-sl tail)
             )])))
 
     ; -- IN --
     (match
       sexp
-      [(? atom?) (replace-atom sexp)]
+      [(? atom?) (substitute-atom sexp)]
       [else
-        (replace-sl sexp)
+        (substitute-sl sexp)
         ])))
  
 
