@@ -2,9 +2,6 @@
 
 (require test-engine/racket-tests)
 (require 2htdp/abstraction)
-(require htdp/dir)
-(require racket/string)
-(require racket/list)
 
 ; ==================== Exercise 345 ====================
 
