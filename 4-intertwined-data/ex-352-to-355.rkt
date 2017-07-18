@@ -120,5 +120,43 @@
 
 ; =================== End of exercise ==================
 
+
+
+
+; ==================== Exercise 354 ====================
+
+; BSL-var-expr AL -> [Either Number Error]
+(check-expect (eval-var-lookup 5 scope0) 5)
+(check-expect (eval-var-lookup 'x scope0) 2)
+(check-error (eval-var-lookup 'lol scope0))
+(check-expect 
+  (eval-var-lookup (make-add 'x (make-mul 'y 5)) scope0) 
+  17
+  )
+(check-error (eval-var-lookup (make-add 'x (make-mul 'w 5))))
+(define (eval-var-lookup ex scope)
+  (match
+    ex
+    [(? symbol?) 
+     (local
+       ((define val (assq ex scope)))
+       (if 
+         (false? val)
+         (error "could not find variable in scope")
+         (second val)
+         ))]
+
+    [(? number?) ex]
+
+    [(add l r) 
+     (+ (eval-var-lookup l scope) (eval-var-lookup r scope))
+     ]
+
+    [(mul l r) 
+     (* (eval-var-lookup l scope) (eval-var-lookup r scope))
+     ]))
+
+; =================== End of exercise ==================
+
 (test)
 
