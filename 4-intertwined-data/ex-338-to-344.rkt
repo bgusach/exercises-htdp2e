@@ -146,8 +146,8 @@
 
 ; Dir String -> [List-of Path]
 ; Finds all the occurences of `name` in `dir`
-; (check-expect (find-all dummy-dir "johnny") '())
-; (check-expect (find-all dummy-dir "lol.txt") '(("lol.txt")))
+(check-expect (find-all dummy-dir "johnny") '())
+(check-expect (find-all dummy-dir "lol.txt") '(("lol.txt")))
 (check-expect 
   (find-all dummy-dir "README") 
   '(("README")
@@ -161,21 +161,84 @@
         (dir-files dir)
         ))
 
+     (define subdirs (dir-dirs dir))
+
      ; [List-of Dir] -> [List-of Path]
      ; Given a list of dirs and a file name, it returns a flat list of
-     (define (paths-from-subdirs subdirs)
+     (define paths-from-subdirs
        (for*/list [(dir subdirs) (path (find-all dir name))]
          ; Prepend this dir name to each path
          (cons
            (clean-dir-name (dir-name dir))
             path
+            ))))
+
+    ; -- IN --
+    (if 
+      file-here?
+      (cons (list name) paths-from-subdirs)
+      paths-from-subdirs
+      )))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 343 ====================
+
+; Dir -> [List-of Path]
+; Returns the paths of all files (and folders) contained in `dir`
+(check-expect
+  (ls-R dummy-dir)
+  '(("subdir")
+    ("subdir2")
+    ("README")
+    ("lol.txt")
+    ("subdir" "README")
+    ("subdir" "important-stuff")
+    ("subdir2" ".keep")
+    ))
+(define (ls-R dir)
+  (local
+    ((define local-files (map list (ls dir)))
+
+     (define subdir-files
+       (for*/list [(subdir (dir-dirs dir)) (subpath (ls-R subdir))]
+         (cons 
+           (clean-dir-name (dir-name subdir))
+           subpath
            ))))
 
     ; -- IN --
     (append
-      (if file-here? (list (list name)) '())
-      (paths-from-subdirs (dir-dirs dir))
+      local-files
+      subdir-files
       )))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 344 ====================
+
+; Dir String -> [List-of Path]
+; Finds all the occurences of `name` in `dir`. `name`
+; can be a file or a folder.
+(check-expect (find-all.v2 dummy-dir "johnny") '())
+(check-expect (find-all.v2 dummy-dir "lol.txt") '(("lol.txt")))
+(check-expect 
+  (find-all.v2 dummy-dir "README") 
+  '(("README")
+    ("subdir" "README")
+    ))
+(check-expect (find-all.v2 dummy-dir "subdir2") '(("subdir2")))
+(define (find-all.v2 dir name)
+  (filter
+    (λ (path) (string=? (last path) name))
+    (ls-R dir)
+    ))
 
 ; =================== End of exercise ==================
 
