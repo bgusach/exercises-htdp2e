@@ -15,7 +15,7 @@
 ; ### Functions
 ; Dir -> N
 ; Counts files withing a directory tree
-(check-expect (how-many dummy-dir) 3)
+(check-expect (how-many dummy-dir) 4)
 (define (how-many dtree)
   (+
     (for/sum [(d (dir-dirs dtree))] (how-many d))
@@ -35,9 +35,12 @@
 
 ; Dir String -> Boolean
 ; Returns whether the 
-(check-expect (find? dummy-dir "proper-programme.php") #false)  ; no way :)
-(check-expect (find? dummy-dir "lol.txt") #true)  ; no way :)
-(check-expect (find? dummy-dir "important-stuff") #true)  ; no way :)
+(check-expect 
+  (find? dummy-dir "proper-programme.php") 
+  #false  ; no way :)
+  )
+(check-expect (find? dummy-dir "lol.txt") #true) 
+(check-expect (find? dummy-dir "important-stuff") #true)
 (define (find? dir name)
   (or
     (ormap (λ (file) (string=? (file-name file) name)) (dir-files dir))
@@ -53,7 +56,7 @@
 
 ; Dir -> [List-of String]
 ; Returns all names of files and dirs within dir (not recursively)
-(check-expect (ls dummy-dir) '("subdir" "README" "lol.txt"))
+(check-expect (ls dummy-dir) '("subdir" "subdir2" "README" "lol.txt"))
 (define (ls dir)
   (append
     (for/list [(d (dir-dirs dir))] (clean-dir-name (dir-name d)))
@@ -82,7 +85,7 @@
 
 ; Dir -> N
 ; Returns the size of the directory tree
-(check-expect (du dummy-dir) 155)
+(check-expect (du dummy-dir) 183)
 (define (du dir)
   (+ 
     (for/sum [(file (dir-files dir))] (file-size file))
@@ -103,7 +106,10 @@
 ; with that name, or #false if not found
 (check-expect (find dummy-dir "hehehe") #false)
 (check-expect (find dummy-dir "lol.txt") '("lol.txt"))
-(check-expect (find dummy-dir "important-stuff") '("subdir" "important-stuff"))
+(check-expect 
+  (find dummy-dir "important-stuff") 
+  '("subdir" "important-stuff")
+  )
 (define (find dir name)
   (local
     ((define file-here? 
@@ -128,38 +134,53 @@
             (cons (clean-dir-name (dir-name subdir)) subres)
             ))))))
 
-; Hint from exercise: While it is tempting to first check whether the file name
-; occurs in the directory tree, you have to do so for every single
-; sub-directory. Hence it is better to combine the functionality of find? and
-; find.
+; Hint from exercise: While it is tempting to first check whether the
+; file name occurs in the directory tree, you have to do so for every
+; single sub-directory. Hence it is better to combine the
+; functionality of find? and find.
 ;
-; Comment: yes, but anyway you have to retraverse in full depth the tree to
-; find where the file is. I think it is clearer and more efficient not to use 
-; find?
+; Comment: Well, anyway you have to Retraverse in full depth the
+; tree to find where the file is. I think it is clearer and more
+; efficient not to use find?
 
 
 ; Dir String -> [List-of Path]
 ; Finds all the occurences of `name` in `dir`
+(check-expect (find-all dummy-dir "johnny") '())
+(check-expect (find-all dummy-dir "lol.txt") '(("lol.txt")))
+(check-expect 
+  (find-all dummy-dir "README") 
+  '(("README")
+    ("subdir" "README")
+    ))
 (define (find-all dir name)
   (local
-    ((define local-matches
-      (foldl 
-        (λ (file acc) 
-           (if 
-             (string=? (file-name file) name) 
-             (cons file acc)
-             acc
-             )))))
+    ((define file-here?
+      (ormap 
+        (λ (f) (string=? (file-name f) name))
+        (dir-files dir)
+        ))
+
+     ; [List-of [List-of Path]]
+     (define (paths-from-subdirs subdirs)
+       (match 
+         subdirs
+         ['() '()]
+         [(cons head tail)
+          (cons
+            (map 
+              (λ (p) (cons (clean-dir-name (dir-name head)) p))
+              (find-all head name)
+              )
+            (paths-from-subdirs tail)
+            )])))
 
     ; -- IN --
-    (append 
-      local-matches
-      (foldl 
-        (λ (subdir acc) ()) ...
-        '(....
-        (dir-dirs dir)
-      )
-  )
+    (foldl
+      append
+      (if file-here? (list (list name)) '())
+      (paths-from-subdirs (dir-dirs dir))
+      )))
 
 
 ; =================== End of exercise ==================
