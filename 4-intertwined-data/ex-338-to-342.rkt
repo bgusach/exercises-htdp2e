@@ -15,7 +15,7 @@
 ; ### Functions
 ; Dir -> N
 ; Counts files withing a directory tree
-(check-expect (how-many dummy-dir) 4)
+(check-expect (how-many dummy-dir) 5)
 (define (how-many dtree)
   (+
     (for/sum [(d (dir-dirs dtree))] (how-many d))
@@ -101,7 +101,7 @@
 
 ; ==================== Exercise 342 ====================
 
-; Dir String -> Path
+; Dir String -> [Maybe Path]
 ; Given a file name, it returns the path to the first file
 ; with that name, or #false if not found
 (check-expect (find dummy-dir "hehehe") #false)
@@ -146,8 +146,8 @@
 
 ; Dir String -> [List-of Path]
 ; Finds all the occurences of `name` in `dir`
-(check-expect (find-all dummy-dir "johnny") '())
-(check-expect (find-all dummy-dir "lol.txt") '(("lol.txt")))
+; (check-expect (find-all dummy-dir "johnny") '())
+; (check-expect (find-all dummy-dir "lol.txt") '(("lol.txt")))
 (check-expect 
   (find-all dummy-dir "README") 
   '(("README")
@@ -161,27 +161,21 @@
         (dir-files dir)
         ))
 
-     ; [List-of [List-of Path]]
+     ; [List-of Dir] -> [List-of Path]
+     ; Given a list of dirs and a file name, it returns a flat list of
      (define (paths-from-subdirs subdirs)
-       (match 
-         subdirs
-         ['() '()]
-         [(cons head tail)
-          (cons
-            (map 
-              (λ (p) (cons (clean-dir-name (dir-name head)) p))
-              (find-all head name)
-              )
-            (paths-from-subdirs tail)
-            )])))
+       (for*/list [(dir subdirs) (path (find-all dir name))]
+         ; Prepend this dir name to each path
+         (cons
+           (clean-dir-name (dir-name dir))
+            path
+           ))))
 
     ; -- IN --
-    (foldl
-      append
+    (append
       (if file-here? (list (list name)) '())
       (paths-from-subdirs (dir-dirs dir))
       )))
-
 
 ; =================== End of exercise ==================
 
