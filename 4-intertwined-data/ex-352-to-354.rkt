@@ -2,6 +2,7 @@
 
 (require test-engine/racket-tests)
 (require 2htdp/abstraction)
+(require racket/function)
 
 
 ; ### Data definitions
@@ -59,6 +60,63 @@
     [(mul l r) (andmap numeric? (list l r))]
     [else #false]
     ))
+
+
+(define not-numeric? (negate numeric?))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 354 ====================
+
+; BSL-var-expr -> [Either Number Error]
+(check-expect (eval-variable 5) 5)
+(check-error (eval-variable 'x))
+(check-expect 
+  (eval-variable (make-add 2 (make-mul 2 3))) 
+  8
+  )
+(check-error (eval-variable (make-add 2 (make-mul 2 'y))))
+(define (eval-variable ex)
+  (match
+    ex
+    [(? not-numeric?) 
+     (error "sorry bro, I can handle only numeric expressions")
+     ]
+    [(? number?) ex]
+    [(add l r) (+ (eval-variable l) (eval-variable r))]
+    [(mul l r) (* (eval-variable l) (eval-variable r))]
+    ))
+
+
+; An AL (short for association list) is [List-of Association].
+; An Association is a list of two items:
+;   (cons Symbol (cons Number '())).
+
+(define scope0 '((x 2) (y 3)))
+
+; BSL-var-expr AL -> [Either Number Error]
+(check-expect (eval-variable* 5 scope0) 5)
+(check-expect (eval-variable* 'x scope0) 2)
+(check-error (eval-variable* 'lol scope0))
+(check-expect 
+  (eval-variable* (make-add 'x (make-mul 'y 5)) scope0) 
+  17
+  )
+(define (eval-variable* ex scope)
+  (local
+    ((define replaced-ex
+       (foldl
+         (λ (pair ex) (subst ex (first pair) (second pair)))
+         ex
+         scope
+         )))
+
+     ; -- IN --
+     (eval-variable replaced-ex)
+     ))
 
 ; =================== End of exercise ==================
 
