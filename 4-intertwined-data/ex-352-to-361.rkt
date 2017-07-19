@@ -454,5 +454,56 @@
 
 ; =================== End of exercise ==================
 
+
+
+
+; ==================== Exercise 361 ====================
+
+; BSL-fun-expr BSL-da-all -> Number
+(check-expect (eval-all 1 da-all) 1)
+(check-expect (eval-all (make-mul 3 4) da-all) 12)
+(check-expect (eval-all (make-add 3 4) da-all) 7)
+(check-expect (eval-all (make-fn-app 'f 3) da-all) 6)
+(check-expect (eval-all (make-fn-app 'g 3) da-all) 9)
+(check-expect (eval-all (make-fn-app 'h 3) da-all) 15)
+(check-expect 
+  (eval-all 'height da-all) 
+  (const-def-val const-height)
+  )
+(define (eval-all ex da)
+  (match
+    ex
+    [(? number?) ex]
+    [(? symbol?) (const-def-val (lookup-con-def da ex))]
+    [(mul x y) (* (eval-all x da) (eval-all y da))]
+    [(add x y) (+ (eval-all x da) (eval-all y da))]
+    [(fn-app fn-name arg)
+     (local
+       ((define found-fn (lookup-fun-def da fn-name))
+        (define evaled-arg (eval-all arg da))
+        (define substituted-body
+          (subst.v2 
+            (fn-def-body found-fn)
+            (fn-def-param found-fn)
+            evaled-arg
+            )))
+
+       ; -- IN --
+       (eval-all substituted-body da)
+
+       )]))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 362 ====================
+
+
+
+; =================== End of exercise ==================
+
+
 (test)
 
