@@ -137,14 +137,7 @@
 (define (eval-var-lookup ex scope)
   (match
     ex
-    [(? symbol?) 
-     (local
-       ((define val (assq ex scope)))
-       (if 
-         (false? val)
-         (error "could not find variable in scope")
-         (second val)
-         ))]
+    [(? symbol?) (resolve-sym ex scope)]
 
     [(? number?) ex]
 
@@ -155,6 +148,85 @@
     [(mul l r) 
      (* (eval-var-lookup l scope) (eval-var-lookup r scope))
      ]))
+
+
+(define (resolve-sym sym scope)
+  (local
+    ((define val (assq sym scope)))
+
+    ; -- IN --
+    (if 
+      (false? val)
+      (error "could not find variable in scope")
+      (second val))))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 356 ====================
+
+; ### Data definitions
+
+(define-struct fn-app [fn-name arg])
+; A FnApp is a structure:
+;   (make-fn-app Symbol BSL-fun-expr)
+; i.e.: a data representation of a function
+; call with only one argument
+
+; A BSL-fun-expr is one of:
+; - Number
+; - Symbol
+; - (make-add BSL-var-expr BSL-var-expr)
+; - (make-mul BSL-var-expr BSL-var-expr)
+; - (make-fn-app Symbol BSL-var-expr)
+;
+; Examples:
+; - (k (+ 1 1)) -> 
+;     (make-fn-app 'k (make-add 1 1))
+; - (* 5 (k (+ 1 1))) -> 
+;     (make-mul 5 (make-fn-app 'k (make-add 1 1)))
+; - (* (i 5) (k (+ 1 1))) ->
+;     (make-mul
+;       (make-fn-app 'i 5)
+;       (make-fn-app 'k (make-add 1 1))
+;       )
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 357 ====================
+
+(define scope1
+  `((x 5)
+    (add-one ,add1)
+    ))
+
+; BSL-fun-expr AL -> Number
+(check-expect (eval-definition1 5 scope1) 5)
+(check-expect 
+  (eval-definition1 (make-fn-app 'add-one 'x) scope1) 
+  6
+  )
+(check-expect 
+  (eval-definition1 
+    (make-mul 2 (make-fn-app 'add-one 'x))
+    scope1
+    ) 
+  12
+  )
+(define (eval-definition1 ex da)
+  (match
+    ex
+    [(? number?) ex]
+    [(? symbol?) (resolve-sym ex da)]
+    [(add l r) (+ (eval-definition1 l da) (eval-definition1 r da))]
+    [(mul l r) (* (eval-definition1 l da) (eval-definition1 r da))]
+    [(fn-app fn arg) ((resolve-sym fn da) (eval-definition1 arg da))]
+    ))
 
 ; =================== End of exercise ==================
 
