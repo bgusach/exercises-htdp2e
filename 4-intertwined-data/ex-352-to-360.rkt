@@ -3,6 +3,7 @@
 (require test-engine/racket-tests)
 (require 2htdp/abstraction)
 (require racket/function)
+(require racket/list)
 
 
 ; ### Data definitions
@@ -389,6 +390,67 @@
        (eval-function* substituted-body da)
 
        )]))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 360 ====================
+
+(define-struct const-def [name val])
+; A ConstDef is a structure (make-const Symbol Number)
+; for example:
+(define const-weight (make-const-def 'weight 50))
+(define const-height (make-const-def 'height 20))
+
+
+; A BSL-da-all is one of:
+; - '()
+; - (cons BSL-fun-def BSL-da-all)
+; - (cons ConstDef BSL-da-all)
+; For example:
+(define da-all
+  (append
+    (list const-weight const-height)
+    da-fgh
+    ))
+
+; BSL-da-all Symbol -> [Either ConstDef Error]
+(check-expect (lookup-con-def da-all 'height) const-height)
+(check-error (lookup-con-def da-all 'lol))
+(check-error (lookup-con-def da-all 'f))
+(define (lookup-con-def da name)
+  (match
+    da
+    ['() (error "could not find constant")]
+    [(cons head tail)
+      (if
+        (and
+          (const-def? head)
+          (symbol=? (const-def-name head) name)
+          )
+        head
+        (lookup-con-def tail name)
+        )]))
+
+
+; BSL-da-all Symbol -> [Either ConstDef Error]
+(check-expect (lookup-fun-def da-all 'f) f-def)
+(check-error (lookup-fun-def da-all 'lol))
+(define (lookup-fun-def da name)
+  (match
+    da
+    ['() (error "could not find function")]
+    [(cons head tail)
+      (if
+        (and
+          (fn-def? head)
+          (symbol=? (fn-def-name head) name)
+          )
+        head
+        (lookup-fun-def tail name)
+        )]))
 
 ; =================== End of exercise ==================
 
