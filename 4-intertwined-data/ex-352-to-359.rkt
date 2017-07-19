@@ -280,19 +280,18 @@
        [(not (symbol=? name fn-name)) (error "unknown function")]
        [else
          (eval-definition1 
-           (subst.v2
+           ; NOTE: here .v2 is used to allow the body 
+           ; of a function to contain fn-app structures
+           (subst.v2 
              body 
              arg-name 
              (eval-definition1 arg fn-name arg-name body) 
-             ; NOTE: if the previous line was only `arg`,
-             ; it would work too, but I guess it would be
-             ; a mess when there are multiple nested
-             ; functions that share the same var names
              )
            fn-name 
            arg-name 
            body
            )])]))
+
 
 ; BSL-fun-expr Symbol Number -> BSL-fun-expr
 ; Same as subst, but handles fn-app structures
@@ -367,6 +366,8 @@
 (check-expect (eval-function* (make-mul 3 4) da-fgh) 12)
 (check-expect (eval-function* (make-add 3 4) da-fgh) 7)
 (check-expect (eval-function* (make-fn-app 'f 3) da-fgh) 6)
+(check-expect (eval-function* (make-fn-app 'g 3) da-fgh) 9)
+(check-expect (eval-function* (make-fn-app 'h 3) da-fgh) 15)
 (define (eval-function* ex da)
   (match
     ex
@@ -375,9 +376,20 @@
     [(mul x y) (* (eval-function* x da) (eval-function* y da))]
     [(add x y) (+ (eval-function* x da) (eval-function* y da))]
     [(fn-app fn-name arg)
-      (eval-function* arg da)
-      (lookup-def da fn-name)
-      ]))
+     (local
+       ((define found-fn (lookup-def da fn-name))
+        (define evaled-arg (eval-function* arg da))
+        (define substituted-body
+          (subst.v2 
+            (fn-def-body found-fn)
+            (fn-def-param found-fn)
+            evaled-arg
+            )))
+
+       ; -- IN --
+       (eval-function* substituted-body da)
+
+       )]))
 
 ; =================== End of exercise ==================
 
