@@ -246,5 +246,54 @@
 
 ; NOTE: from now on, Xexpr refers to Xexpr.v2
 
+; ### Data Definitions
+; An XWord is '(word ((text String))).
+; 
+; Its XML node would be: <word text="...">
+
+
+
+; ==================== Exercise 370 ====================
+
+(define word0 '(word ((text "hello"))))
+(define word1 '(word ((text "schnitzel"))))
+(define word2 '(word ((text "paella"))))
+
+
+; [X] X -> Boolean
+(check-expect (word? word0) #true)
+(check-expect (word? word1) #true)
+(check-expect (word? '(this is no word)) #false)
+(check-expect (word? '(word "neither this")) #false)
+(define (word? x)
+  (match
+    x
+    [(cons 'word (cons attrs '()))
+     (and
+       (list-of-attributes? attrs)
+       (symbol=? (caar attrs) 'text)
+       (string? (cadar attrs))
+       )]
+    [else #false]
+    ))
+
+
+; XWord -> String
+(check-expect (word-text word0) "hello")
+(define (word-text w)
+  (if
+    (word? w)
+    (second (first (second w)))
+    (error (format "expected word, got ~a" w))
+    ))
+
+
+(require racket/trace)
+
+; =================== End of exercise ==================
+
+
+
+
 (test)
 
