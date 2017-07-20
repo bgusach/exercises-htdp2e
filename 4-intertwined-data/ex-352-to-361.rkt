@@ -500,10 +500,78 @@
 
 ; ==================== Exercise 362 ====================
 
+; S-expr SL -> Number
+; (check-expect 
+;   (interpreter '(+ 1 x) '((define x 5)))
+;   6
+;   )
+; (define (interpreter expr-se defs-se)
+;   0
+;   )
+
+
+; S-expr -> BSL-fun-expr
+; Generates an BSL-fun-expr from a S-expression, as
+; long as it can be parsed. 
+(check-expect (parse 45) 45)
+(check-expect (parse '(* 3 (+ 3 4))) (make-mul 3 (make-add 3 4)))
+(check-error (parse "lol"))
+(check-error (parse '(+ 10 5 3)))
+(check-expect (parse '(f 5)) (make-fn-app 'f 5))
+(check-expect (parse '(f (+ 1 1))) (make-fn-app 'f (make-add 1 1)))
+(define (parse s)
+  (cond
+    [(atom? s) (parse-atom s)]
+    [else (parse-sl s)]
+    ))
+ 
+; NOTE: these kind of error are not requested by the exercise
+(define ERROR-LENGTH "length of s-expr must be exactly 3")
+(define ERROR-SYMBOL "unexpected symbol")
+(define ERROR-NO-SYMBOL "expected symbol, got something else")
+(define ERROR-ATOM "unexpected atom")
+
+
+; SL -> BSL-expr 
+(define (parse-sl s)
+  (match
+    s
+    [(cons 1st (cons 2nd (cons 3rd '())))
+     (match
+       1st
+       ['+ (make-add (parse 2nd) (parse 3rd))]
+       ['* (make-mul (parse 2nd) (parse 3rd))]
+       [else (error ERROR-NO-SYMBOL)]
+       )]
+
+    [(cons 1st (cons 2nd '()))
+     (if
+       (symbol? 1st)
+       (make-fn-app 1st (parse 2nd))
+       (error ERROR-NO-SYMBOL)
+       )]
+
+    [else (error ERROR-LENGTH)]
+    ))
+ 
+
+; Atom -> BSL-expr 
+(define (parse-atom s)
+  (cond
+    [(number? s) s]
+    [(symbol? s) s]
+    [(string? s) (error ERROR-ATOM)]
+    ))
+
+
+; [X] X -> Boolean
+; Atom predicate
+(define (atom? x)
+  (or (number? x) (string? x) (symbol? x))
+  )
 
 
 ; =================== End of exercise ==================
-
 
 (test)
 
