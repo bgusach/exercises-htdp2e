@@ -416,6 +416,8 @@
     da-fgh
     ))
 
+(define ERROR-CONSTANT-NOT-FOUND "could not find constant")
+
 ; BSL-da-all Symbol -> [Either ConstDef Error]
 (check-expect (lookup-con-def da-all 'height) const-height)
 (check-error (lookup-con-def da-all 'lol))
@@ -423,7 +425,7 @@
 (define (lookup-con-def da name)
   (match
     da
-    ['() (error "could not find constant")]
+    ['() (error ERROR-CONSTANT-NOT-FOUND)]
     [(cons head tail)
       (if
         (and
@@ -435,13 +437,15 @@
         )]))
 
 
+(define ERROR-FUNCTION-NOT-FOUND "could not find function")
+
 ; BSL-da-all Symbol -> [Either ConstDef Error]
 (check-expect (lookup-fun-def da-all 'f) f-def)
 (check-error (lookup-fun-def da-all 'lol))
 (define (lookup-fun-def da name)
   (match
     da
-    ['() (error "could not find function")]
+    ['() (error ERROR-FUNCTION-NOT-FOUND)]
     [(cons head tail)
       (if
         (and
@@ -501,13 +505,41 @@
 ; ==================== Exercise 362 ====================
 
 ; S-expr SL -> Number
-; (check-expect 
-;   (interpreter '(+ 1 x) '((define x 5)))
-;   6
-;   )
-; (define (interpreter expr-se defs-se)
-;   0
-;   )
+(check-expect 
+  (interpreter '(+ 1 x) '((define x 5)))
+  6
+  )
+(check-expect 
+  (interpreter 
+    '(f (+ 1 x)) 
+    '((define x 5) 
+      (define (f x) (* 2 x)))
+    )
+  12
+  )
+(check-error
+  (interpreter
+    'x
+    '()
+    )
+  ERROR-CONSTANT-NOT-FOUND
+  )
+(check-error
+  (interpreter
+    '(f 5)
+    '()
+    )
+  ERROR-FUNCTION-NOT-FOUND
+  )
+(define (interpreter expr-se defs-se)
+  (local
+    ((define expr (parse expr-se))
+     (define da (map parse defs-se))
+     ) 
+
+    ; -- IN --
+    (eval-all expr da)
+    ))
 
 
 ; S-expr -> BSL-fun-expr
@@ -519,41 +551,59 @@
 (check-error (parse '(+ 10 5 3)))
 (check-expect (parse '(f 5)) (make-fn-app 'f 5))
 (check-expect (parse '(f (+ 1 1))) (make-fn-app 'f (make-add 1 1)))
+(check-expect (parse '(f (* 1 z))) (make-fn-app 'f (make-mul 1 'z)))
+(check-expect (parse '(define some-const 4)) (make-const-def 'some-const 4))
+(check-expect (parse '(define some-const z)) (make-const-def 'some-const 'z))
+(check-expect (parse '(define (some-fn x) x)) (make-fn-def 'some-fn 'x 'x))
 (define (parse s)
   (cond
     [(atom? s) (parse-atom s)]
     [else (parse-sl s)]
     ))
  
-; NOTE: these kind of error are not requested by the exercise
-(define ERROR-LENGTH "length of s-expr must be exactly 3")
-(define ERROR-SYMBOL "unexpected symbol")
-(define ERROR-NO-SYMBOL "expected symbol, got something else")
-(define ERROR-ATOM "unexpected atom")
 
+(define ERROR-ATOM "unexpected atom")
 
 ; SL -> BSL-expr 
 (define (parse-sl s)
   (match
     s
-    [(cons 1st (cons 2nd (cons 3rd '())))
-     (match
-       1st
-       ['+ (make-add (parse 2nd) (parse 3rd))]
-       ['* (make-mul (parse 2nd) (parse 3rd))]
-       [else (error ERROR-NO-SYMBOL)]
-       )]
+    [(cons '+ (cons l (cons r '())))
+     (make-add (parse l) (parse r))
+     ]
 
-    [(cons 1st (cons 2nd '()))
-     (if
-       (symbol? 1st)
-       (make-fn-app 1st (parse 2nd))
-       (error ERROR-NO-SYMBOL)
-       )]
+    [(cons '* (cons l (cons r '())))
+     (make-mul (parse l) (parse r))
+     ]
 
-    [else (error ERROR-LENGTH)]
+    [(cons 'define tail) (parse-define tail)]
+
+    [(cons (? symbol?) (cons fn-arg '()))
+     (make-fn-app (first s) (parse fn-arg))
+     ]
+
+    [else (error "not parseable!")]
     ))
- 
+
+
+; SL -> [Either BSL-fun-expr Error]
+; Parses a "define" SL. The S-expr list MUST NOT contain
+; the 'define symbol at the start, just the rest.
+(define (parse-define def)
+  (match 
+    def
+    ; NOTE: fn-def must come before const-def, since constant matching 
+    ; pattern would absorb functions as well
+    [(cons (cons fn-name (cons fn-param '())) (cons fn-body '()))
+     (make-fn-def fn-name fn-param (parse fn-body))
+     ]
+
+    [(cons const-name (cons const-val '()))
+     (make-const-def const-name (parse const-val))
+     ]
+
+    [else (error "define expression was neither func nor const")]
+    ))
 
 ; Atom -> BSL-expr 
 (define (parse-atom s)
