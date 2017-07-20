@@ -605,12 +605,16 @@
     [else (error "define expression was neither func nor const")]
     ))
 
+
+(define ERROR-STRING "Upgrade to premium version to be able to use strings!!!")
+
+
 ; Atom -> BSL-expr 
 (define (parse-atom s)
   (cond
     [(number? s) s]
     [(symbol? s) s]
-    [(string? s) (error ERROR-ATOM)]
+    [(string? s) (error ERROR-STRING)]
     ))
 
 
