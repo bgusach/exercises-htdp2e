@@ -125,6 +125,12 @@ specific::
         ]))
 
 
+In case of intertwined data definitions, create one template per
+data definition, and create them in parallel. These functions
+should refer to each other the same way the data definitions
+refer to each other.
+
+
 5.- Implement template
 ----------------------
 Replace the template placeholders with actual implementation that satisfies
