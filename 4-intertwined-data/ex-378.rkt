@@ -279,7 +279,7 @@
 
 ; ==================== Exercise 383 ====================
 
-(simulate-xmachine b&w-fsm)
+; (simulate-xmachine b&w-fsm)
 
 ; =================== End of exercise ==================
 
@@ -300,8 +300,9 @@
 
 ; ==================== Exercise 384 ====================
 
-; read-expr fetches and parses a local XML while 
-; read-expr/web fetches and parses from an URL
+; Q: What's the difference between read-expr and read-expr/web
+; A: read-expr fetches and parses a local XML while 
+;    read-expr/web fetches and parses from an URL
 
 (define PREFIX "https://www.google.com/finance?q=")
 (define SUFFIX "&btnG=Search")
@@ -309,7 +310,9 @@
  
 (define-struct data [price delta])
 ; A StockWorld is a structure: (make-data String String)
+; Intepretation: current price and price change
  
+
 ; String -> StockWorld
 ; retrieves the stock price of co and its change every 15s
 (define (stock-alert co)
@@ -317,8 +320,8 @@
     ((define url (string-append PREFIX co SUFFIX))
 
      ; Any -> StockWorld
-     ; Receives a dummy parameter `__w` and
-     ; returns a StockWorld for the current
+     ; Receives a dummy parameter `__w` that gets ignored
+     ; and returns a StockWorld for the current
      (define (retrieve-stock-data __w)
        (local 
          ((define x (read-xexpr/web url)))
@@ -333,6 +336,9 @@
      (define (render-stock-data w)
        (local 
          (; [StockWorld -> String] -> Image
+          ; Applies the selection function `sel`
+          ; to the current state of the world, 
+          ; and generates an image with the result
           (define (word sel col)
             (text (sel w) FONT-SIZE col)
             ))
@@ -352,6 +358,56 @@
       [on-tick retrieve-stock-data 15]
       [to-draw render-stock-data]
       )))
+
+; =================== End of exercise ==================
+
+
+
+; ==================== Exercise 385 ====================
+
+; NOTE: just a simple html document was used
+
+(check-expect
+  (read-xexpr "./sample.html")
+  '(html ()
+     (body ()
+      (ul ()
+        (li () "lol")
+        (li () "troll")
+        ))))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 386 ====================
+
+; Xexpr.v3 String -> String
+; retrieves the value of the "content" attribute 
+; from a 'meta element that has attribute "itemprop"
+; with value s
+(check-expect
+  (get '(meta ((content "+1") (itemprop "F"))) "F")
+  "+1"
+  )
+(define (get x s)
+  (local 
+    ((define result (get-xexpr x s))
+     )
+
+    ; -- IN --
+    (if 
+      (string? result)
+      result
+      (error "not found")
+      )))
+
+
+; Xexpr.v3 String -> [Maybe String]
+(define (get-xexpr xexpr attr)
+  ...
+  )
 
 ; =================== End of exercise ==================
 
