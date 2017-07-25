@@ -5,6 +5,7 @@
 (require 2htdp/image)
 (require 2htdp/universe)
 (require racket/string)
+(require 2htdp/batch-io)
 
 
 ; ### Data definitions
@@ -272,7 +273,87 @@
   (find-attr (xexpr-attr xm0) 'initial)
   )
 
-(simulate-xmachine xm0)
+; (simulate-xmachine xm0)
+
+
+
+; ==================== Exercise 383 ====================
+
+(simulate-xmachine b&w-fsm)
+
+; =================== End of exercise ==================
+
+; ### Data Definitions
+
+; An Xexpr.v3 is one of:
+;  – Symbol
+;  – String
+;  – Number
+;  – (cons Symbol (cons Attribute*.v3 [List-of Xexpr.v3]))
+;  – (cons Symbol [List-of Xexpr.v3])
+; 
+; An Attribute*.v3 is a [List-of Attribute.v3].
+;   
+; An Attribute.v3 is a list of two items:
+;   (list Symbol String)
+
+
+; ==================== Exercise 384 ====================
+
+; read-expr fetches and parses a local XML while 
+; read-expr/web fetches and parses from an URL
+
+(define PREFIX "https://www.google.com/finance?q=")
+(define SUFFIX "&btnG=Search")
+(define FONT-SIZE 22)
+ 
+(define-struct data [price delta])
+; A StockWorld is a structure: (make-data String String)
+ 
+; String -> StockWorld
+; retrieves the stock price of co and its change every 15s
+(define (stock-alert co)
+  (local 
+    ((define url (string-append PREFIX co SUFFIX))
+
+     ; Any -> StockWorld
+     ; Receives a dummy parameter `__w` and
+     ; returns a StockWorld for the current
+     (define (retrieve-stock-data __w)
+       (local 
+         ((define x (read-xexpr/web url)))
+
+          ; -- IN --
+          (make-data 
+            (get x "price")
+            (get x "priceChange")
+            )))
+
+     ; StockWorld -> Image 
+     (define (render-stock-data w)
+       (local 
+         (; [StockWorld -> String] -> Image
+          (define (word sel col)
+            (text (sel w) FONT-SIZE col)
+            ))
+
+         ; -- IN --
+         (overlay 
+           (beside 
+             (word data-price 'black)
+             (text "  " FONT-SIZE 'white)
+             (word data-delta 'red))
+             (rectangle 300 35 'solid 'white)
+             ))))
+
+    ; -- IN -- 
+    (big-bang 
+      (retrieve-stock-data 'no-use)
+      [on-tick retrieve-stock-data 15]
+      [to-draw render-stock-data]
+      )))
+
+; =================== End of exercise ==================
 
 (test)
 
