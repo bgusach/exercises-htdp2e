@@ -405,9 +405,24 @@
 
 
 ; Xexpr.v3 String -> [Maybe String]
-(define (get-xexpr xexpr attr)
-  ...
+(check-expect 
+  (get-xexpr '(lol ((price "a lot"))) "price")
+  "a lot"
   )
+(define (get-xexpr xexpr attr)
+  (local
+    ((define res 
+       (find-attr 
+         (xexpr-attr xexpr) 
+         (string->symbol attr)
+         )))
+  
+    ; -- IN --
+    (if 
+      (false? res)
+      #false
+      (second res)
+      )))
 
 ; =================== End of exercise ==================
 
