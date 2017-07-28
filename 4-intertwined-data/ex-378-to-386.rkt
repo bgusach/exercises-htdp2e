@@ -408,8 +408,8 @@
 
 
 ; Xexpr.v3 String -> [Maybe String]
-; Returns the content of a metatag if the itemprop
-; matches 
+; Finds the first metatag matching `itemprop` and returns
+; its contents. Searches recursively
 (check-expect 
   (get-xexpr '(meta ((content "a lot") (itemprop "F"))) "F")
   "a lot"
@@ -422,20 +422,55 @@
   (get-xexpr '(meta ((content "a lot") (itemprop "F"))) "Z")
   #false
   )
+(check-expect 
+  (get-xexpr 
+    '(html
+       (head
+         (script)
+         (meta ((content "a lot") (itemprop "F"))) 
+         ))
+    "F"
+    )
+  "a lot"
+  )
 (define (get-xexpr xexpr itemprop)
-  (local
-    ((define meta? (symbol=? (xexpr-name xexpr) 'meta))
-     (define attrs (xexpr-attr xexpr))
-     (define this-itemprop (find-attr attrs 'itemprop))
-     (define this-content (find-attr attrs 'content))
-     )
+  (if
+    (atom? xexpr)
+    #false
+    (local
+      ((define name (xexpr-name xexpr))
+       (define attrs (xexpr-attr xexpr))
+       (define content (xexpr-content xexpr))
+       (define meta? (symbol=? name 'meta))
+       (define match-itemprop? 
+         (equal? (find-attr attrs 'itemprop) itemprop)
+         )
+       (define meta-content
+         (if match-itemprop? 
+           (find-attr attrs 'content)
+           #false
+           )))
 
-    ; -- IN --
-    (if
-      (and meta? (equal? this-itemprop itemprop))
-      this-content
-      #false
-      )))
+      ; -- IN --
+      (if
+        (and meta? match-itemprop? (not (false? meta-content)))
+        meta-content
+        (for/or [(subnode content)] (get-xexpr subnode itemprop))
+        ))))
+
+
+; [X] X -> Boolean
+; Atom predicate
+(define (atom? x)
+  (or (number? x) (string? x) (symbol? x))
+  )
+
+; An Xexpr.v3 is one of:
+;  – Symbol
+;  – String
+;  – Number
+;  – (cons Symbol (cons Attribute*.v3 [List-of Xexpr.v3]))
+;  – (cons Symbol [List-of Xexpr.v3])
 
 ; TODO: what does it mean "get-xexpr can traverse an arbitrary 
 ; Xexpr.v3"? looks recursively deeper?
