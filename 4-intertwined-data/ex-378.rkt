@@ -391,6 +391,9 @@
   (get '(meta ((content "+1") (itemprop "F"))) "F")
   "+1"
   )
+(check-error
+  (get '(meta ((content "+1") (itemprop "F"))) "U")
+  )
 (define (get x s)
   (local 
     ((define result (get-xexpr x s))
@@ -405,24 +408,37 @@
 
 
 ; Xexpr.v3 String -> [Maybe String]
+; Returns the content of a metatag if the itemprop
+; matches 
 (check-expect 
-  (get-xexpr '(lol ((price "a lot"))) "price")
+  (get-xexpr '(meta ((content "a lot") (itemprop "F"))) "F")
   "a lot"
   )
-(define (get-xexpr xexpr attr)
+(check-expect 
+  (get-xexpr '(lol ((content "a lot") (itemprop "F"))) "F")
+  #false
+  )
+(check-expect 
+  (get-xexpr '(meta ((content "a lot") (itemprop "F"))) "Z")
+  #false
+  )
+(define (get-xexpr xexpr itemprop)
   (local
-    ((define res 
-       (find-attr 
-         (xexpr-attr xexpr) 
-         (string->symbol attr)
-         )))
-  
+    ((define meta? (symbol=? (xexpr-name xexpr) 'meta))
+     (define attrs (xexpr-attr xexpr))
+     (define this-itemprop (find-attr attrs 'itemprop))
+     (define this-content (find-attr attrs 'content))
+     )
+
     ; -- IN --
-    (if 
-      (false? res)
+    (if
+      (and meta? (equal? this-itemprop itemprop))
+      this-content
       #false
-      (second res)
       )))
+
+; TODO: what does it mean "get-xexpr can traverse an arbitrary 
+; Xexpr.v3"? looks recursively deeper?
 
 ; =================== End of exercise ==================
 
