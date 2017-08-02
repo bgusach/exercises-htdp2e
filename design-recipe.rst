@@ -130,6 +130,20 @@ data definition, and create them in parallel. These functions
 should refer to each other the same way the data definitions
 refer to each other.
 
+When a function deals with two or more complex (itemizations/
+recursive) arguments, try to follow this guideline:
+
+- If one of the args plays a dominant role -> design around this 
+  argument, and treat the other one as atomic.
+
+- If all args seem to have the same relevance (e.g. two lists
+  that must have the same length), design the function around
+  the first one, and then traverse the rest in parallel.
+
+- If none of the above fits, analyze all the possible cases
+  (a table is for 2 args), and then use this analysis 
+  to create the template.
+
 
 5.- Implement template
 ----------------------
