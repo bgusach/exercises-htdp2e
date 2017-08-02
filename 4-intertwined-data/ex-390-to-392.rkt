@@ -81,5 +81,44 @@
 
 ; =================== End of exercise ==================
 
+
+
+
+; ==================== Exercise 392 ====================
+
+
+; TOS Path -> [Either Direction Error]
+(check-expect (tree-pick.v2 'a '()) 'a)
+(check-expect (tree-pick.v2 (make-branch 'a 'b) '(right)) 'b)
+(check-expect 
+  (tree-pick.v2 
+    (make-branch 'a (make-branch 'b 'c)) 
+    '(right left)
+    )
+  'b
+  )
+(check-error 
+  (tree-pick.v2 (make-branch 'a 'b) '(right right right))
+  )
+(check-error 
+  (tree-pick.v2 (make-branch 'a 'b) '())
+  )
+(define (tree-pick.v2 tree lod)
+  (cond
+    [(or 
+       (and (symbol? tree) (cons? lod))
+       (and (branch? tree) (empty? lod))
+       ) 
+     (error "directions and tree not compatible")]
+    [(and (symbol? tree) (empty? lod)) tree]
+    [(and (branch? tree) (cons? lod)) 
+     (if
+       (symbol=? (first lod) 'left)
+       (tree-pick.v2 (branch-left tree) (rest lod))
+       (tree-pick.v2 (branch-right tree) (rest lod))
+       )]))
+
+; =================== End of exercise ==================
+
 (test)
 
