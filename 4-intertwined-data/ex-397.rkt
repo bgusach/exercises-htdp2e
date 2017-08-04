@@ -27,47 +27,61 @@
 (define paco-pay (make-payment (employee-name paco) 455))
 
 
-; [List-of Employee] [List-of WorkRecord]
+; [List-of Employee] [List-of WorkRecord] -> [List-of Payment]
 (check-expect (wages*.v3 '() '()) '())
 (check-expect 
   (wages*.v3 (list john paco) (list paco-wr john-wr)) 
   (list john-pay paco-pay)
   )
+(check-error (wages*.v3 '(john) '()))
+(check-error (wages*.v3 '(john) '(paco)))
+(check-error (wages*.v3 '() '(paco)))
 (define (wages*.v3 loe lowr)
-  (match
-    loe
-    ['() '()]
-    [(cons empl tail)
-     (cons
-       (calculate-payment 
-         empl
-         (find-work-rec (employee-name empl) lowr)
-         )
-       (wages*.v3 tail lowr)
-       )]))
+  (local
+    ((define sorted-empl 
+       (sort 
+         loe 
+         (λ (a b) (string<? (employee-name a) (employee-name b)))
+         ))
+     (define sorted-work-recs
+       (sort 
+         lowr 
+         (λ (a b) (string<? (work-rec-employee a) (work-rec-employee b)))
+         ))
 
+     ; [List-of Employee] [List-of WorkRecord] -> [List-of Payment]
+     (define (resolve loe lowr)
+       (cond
+         [(and (empty? loe) (empty? lowr)) '()]
+         [(or
+            (and (cons? loe) (empty? lowr))
+            (and (empty? loe) (cons? lowr)) 
+            )
+            (error "different lengths")
+            ]
+         [else 
+           (cons
+             (calculate-payment (first loe) (first lowr))
+             (resolve (rest loe) (rest lowr))
+             )])))
 
-; String [List-of WorkRecord] -> [Either WorkRecord Error]
-(define (find-work-rec name lowr)
-  (match
-    lowr
-    ['() (error "employee record not found")]
-    [(cons this-rec tail)
-     (if 
-       (string=? (work-rec-employee this-rec) name)
-       this-rec
-       (find-work-rec name tail)
-       )]))
+    ; -- IN --
+    (resolve sorted-empl sorted-work-recs)
+    ))
 
 
 ; Employee WorkRecord -> Payment
 (define (calculate-payment empl w-rec)
-  (make-payment
-    (employee-name empl)
-    (*
-      (employee-rate empl)
-      (work-rec-hours w-rec)
-      )))
+  (if 
+   (string=? (employee-name empl) (work-rec-employee w-rec))
+   (make-payment
+     (employee-name empl)
+     (*
+       (employee-rate empl)
+       (work-rec-hours w-rec)
+       ))
+   (error "employee name and record don't match!")
+   ))
 
 ; =================== End of exercise ==================
 
