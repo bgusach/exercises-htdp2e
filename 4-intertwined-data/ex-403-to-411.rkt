@@ -426,7 +426,7 @@
 
 
 
-; ==================== Exercise 409 ====================
+; ==================== Exercise 410 ====================
 
 ; DB DB -> DB
 ; Joins the two databases into a new one, eliminating
@@ -469,7 +469,7 @@
 
 
 
-; ==================== Exercise 410 ====================
+; ==================== Exercise 411 ====================
 
 (define test-users-db
   (make-db
