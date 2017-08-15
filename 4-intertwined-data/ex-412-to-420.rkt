@@ -2,9 +2,6 @@
 
 (require test-engine/racket-tests)
 (require 2htdp/abstraction)
-; (require racket/list)
-; (require racket/string)
-; (require racket/base)
 
 
 ; ### Data Definitions
@@ -315,6 +312,113 @@
     (helper 0)
     ))
 
+
+; =================== End of exercise ==================
+
+; ==================== Exercise 417 ====================
+
+; The expression (expt 1.001 1e-12) yields
+; - in racket: 1.000000000000001 
+; - in isl+: #i1.000000000000001
+
+; I.e. isl+ tells upfront it is an inexact number, while
+; racket does not.
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 418 ====================
+
+; Number N -> Number
+; Raises `base`to the power of `e`
+(define (my-expt base e)
+  (cond
+    [(zero? e) 1]
+    [else (* base (my-expt base (sub1 e)))]
+    ))
+
+(define inex-num (+ 1 #i1e-12))
+(define exac-num (+ 1 1e-12))
+
+(my-expt inex-num 30)  ; yields #i1.0000000000300027
+(my-expt exac-num 30)  ; yields  1.000000000030000000000435000000004060000000027405000000142506000000593775000002035800000005852925000014307150000030045015000054627300000086493225000119759850000145422675000155117520000145422675000119759850000086493225000054627300000030045015000014307150000005852925000002035800000000593775000000142506000000027405000000004060000000000435000000000030000000000001
+
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 419 ====================
+
+(define JANUS
+  (list 
+    31.0
+    #i2e+34
+    #i-1.2345678901235e+80
+    2749.0
+    -2939234.0
+    #i-2e+33
+    #i3.2e+270
+    17.0
+    #i-2.4e+270
+    #i4.2344294738446e+170
+    1.0
+    #i-8e+269
+    0.0
+    99.0
+    ))
+
+(define (sum lon)
+  (cond
+    [(empty? lon) 0]
+    [else (+ (first lon) (sum (rest lon)))]
+    ))
+
+"Testing JANUS sums"
+(sum JANUS)
+(sum (reverse JANUS))
+(sum (sort JANUS <))
+(exact->inexact (sum (map inexact->exact JANUS)))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 420 ====================
+
+(define (oscillate n)
+  (local
+    ((define (osc i)
+       (cond
+         [(> i n) '()]
+         [else
+           (cons 
+             (expt #i-0.99 i)
+             (osc (add1 i))
+             )])))
+
+     ; -- IN --
+     (osc 1)
+     ))
+
+(oscillate 15)
+(sum (oscillate 1000))
+(sum (reverse (oscillate 1000)))
+
+(- 
+  (* 1e+16 (sum (oscillate #i1000.0)))
+  (* 1e+16 (sum (reverse (oscillate #i1000.0))))
+  )
+
+; Q: can this difference matter?
+; A: yes it can. Depends on the context.
+
+; Q: can we trust computers?
+; A: as long as we know their flaws
 
 ; =================== End of exercise ==================
 
