@@ -58,12 +58,13 @@
           ))]))
 
 
-; 
+; [List-of Number] Number -> [List-of Number]
 (define (smallers alon pivot)
   (filter (λ (n) (< n pivot)))
   )
 
 
+; [List-of Number] Number -> [List-of Number]
 (define (larger alon pivot)
   (filter (λ (n) (> n pivot)))
   )
@@ -71,5 +72,6 @@
 
 ; =================== End of exercise ==================
 
+; ==================== Exercise 424 ====================
 (test)
 
