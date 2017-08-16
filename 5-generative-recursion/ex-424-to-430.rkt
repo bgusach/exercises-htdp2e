@@ -248,5 +248,37 @@
 
 ; =================== End of exercise ==================
 
+
+
+
+; ==================== Exercise 431 ====================
+
+; bundle problem
+; ==============
+; Q: What is a trivially solvable problem?
+; A: Bundling an empty list or taking 0-sized chunks
+;
+; Q: How are trivial solutions solved?
+; A: Bundling an empty list returns an empty list, and 
+;    taking chunks of 0 items results in an error
+;
+; Q: How does the algorithm generate new problems that
+;    are more easily solvable than the original one?
+;    Is there one new problem or are there several?
+; A: There is only a new problem, and it gets easier to
+;    solve because eventually we hit the edge/trivial 
+;    case.
+;
+; Q: Is the solution of the given problem the same as
+;    the new problem(s)? or it is necessary to combine
+;    solutions.
+; A: It depends on what you consider combining... the bundle
+;    implementation splits the problem in one part that
+;    can easily be solved, that has to be combined with
+;    the recursion on the rest.
+
+
+; =================== End of exercise ==================
+
 (test)
 
