@@ -79,12 +79,50 @@
 ;    This function is used in the quick-sort< to generate a subproblem 
 ;    (numbers smaller than the pivot), and may return the very list 
 ;    that was passed. E.g. if quick-sort< is passed '(5 3 1),
-;    takes 5 as pivot and passes '(5 3 1) to the `smallers` function,
+;    takes 5 as pivot and passes '(5 3 1) 5 to the `smallers` function,
 ;    that list will be passed again to quick-sort< and will recur
 ;    forever.
 ;
 ;    In other words: the generative step can create the same initial 
 ;    problem, resulting in endless recursion.
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 435 ====================:
+
+(check-expect (quick-sort< '(9 3 1 1 1 1 6)) '(1 1 1 1 3 6 9))
+(check-expect (quick-sort< '()) '())
+(define (quick-sort< alon)
+  (cond
+    [(empty? alon) '()]
+    [(empty? (rest alon)) alon]
+    [else
+      (local
+        ((define pivot (first alon))
+         (define pivot-equals (filter (λ (x) (= x pivot)) alon))
+         (define pivot-diffs (filter (λ (x) (not (= x pivot))) alon))
+         )
+        ; -- IN --
+        (append
+          (quick-sort< (smallers pivot-diffs pivot))
+          pivot-equals
+          (quick-sort< (largers pivot-diffs pivot))
+          ))]))
+
+
+(define (largers l n)
+  (cond
+    [(empty? l) '()]
+    [else 
+      (if 
+        (>= (first l) n)
+        (cons (first l) (largers (rest l) n))
+        (largers (rest l) n)
+        )]))
+
 
 ; =================== End of exercise ==================
 
