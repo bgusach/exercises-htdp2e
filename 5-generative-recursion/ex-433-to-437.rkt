@@ -1,6 +1,7 @@
 #lang htdp/isl+
 
 (require test-engine/racket-tests)
+(require racket/base)
 
 
 ; ==================== Exercise 433 ====================
@@ -136,6 +137,49 @@
 ; returned.
 
 ; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 437 ====================:
+
+	
+(check-expect (compute-length '(1 2 3)) 3)
+(define (compute-length P)
+  (cond
+    [(empty? P) 0]
+    [else (+ 1 (compute-length (rest P)))]
+    ))
+
+
+(check-expect (negate-each '(1 0 -3)) '(-1 0 3))
+(define (negate-each P)
+  (cond
+    [(empty? P) '()]
+    [else
+     (cons
+       (* -1 (first P))
+       (negate-each (rest P))
+       )]))
+
+
+(check-expect (uppercase-each '("lol" "pk")) '("LOL" "PK"))
+(define (uppercase-each P)
+  (cond
+    [(empty? P) '()]
+    [else 
+      (cons
+        (string-upcase (first P))
+        (uppercase-each (rest P))
+        )]))
+
+; Q: What do you conclude from these exercises?
+; A: Structural recursion problems are all very similar and
+;    can be solved systematically, especially if they are not 
+;    intertwined.
+
+; =================== End of exercise ==================
+
 
 (test)
 
