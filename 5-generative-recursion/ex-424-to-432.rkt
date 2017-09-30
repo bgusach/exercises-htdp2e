@@ -250,7 +250,6 @@
 
 
 
-
 ; ==================== Exercise 431 ====================
 
 ; bundle problem
@@ -278,7 +277,58 @@
 ;    the recursion on the rest.
 
 
+; quick-sort< problem
+; ===================
+; Q: What is a trivially solvable problem?
+; A: A list with 0 or 1 elements
+;
+; Q: How are trivial solutions solved?
+; A: They are already solved
+;
+; Q: How does the algorithm generate new problems that
+;    are more easily solvable than the original one?
+;    Is there one new problem or are there several?
+; A: Sublists are shorter than initial problem, therefore
+;    sooner or later we hit a trivial problem.
+;
+; Q: Is the solution of the given problem the same as
+;    the new problem(s)? or it is necessary to combine
+;    solutions.
+; A: It is necessary to combine the two subsolutions
+;    and the pivot to get the general solution.
+
 ; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 432 ====================
+
+; Posn -> Posn
+; Returns a new random Posn that is not equal to `not-here`
+(define (create-food not-here)
+  (local
+    ((define candidate 
+       (make-posn (random 10) (random 10))
+       ))
+
+    ; -- IN --
+    (if
+      (equal? candidate not-here)
+      (create-food not-here)
+      candidate
+      )))
+
+; Q: Justify the design of create-food
+; A: Uhm... justify? :)
+;    It is a case of generative recursion, but does not
+;    follow the breaking into smaller problems approach.
+;    Instead, a new solution candidate is randomly generated,
+;    evaluated and returned if valid, recursing otherwise. 
+;    The evaluation is the combining/selection function.
+
+; =================== End of exercise ==================
+
 
 (test)
 

@@ -54,6 +54,12 @@ Examples::
     (define (string-length str) 0)  ; 0 is the dummy value
 
 
+In case of generative recursion (where the generative step has no
+connection to the structure of the data definition), the purpose
+statement has to explain not only the "what" but also "how" the
+result is computed
+
+
 3.- Give some input/output examples
 -----------------------------------
 Write the expected outputs for a set of give inputs. Basically, write unit
@@ -143,6 +149,33 @@ recursive) arguments, try to follow this guideline:
 - If none of the above fits, analyze all the possible cases
   (a table is for 2 args), and then use this analysis 
   to create the template.
+
+
+In case of generative recursion, instead of edge cases, we have 
+trivial cases that have a direct solution, and if not trivial, some
+kind of generation of new problems out of the original one has to be
+carried out (this is called the generative step). This step often
+consists of breaking the problem down into smaller ones
+(usually of the same type, thus leading to recursion) and then 
+"combine" the partial solutions into a general solution. 
+Combining can actually consist of taking the solution of a 
+subproblem and dropping the rest. Something like this::
+
+  (define (gen-rec problem)
+    (cond
+      [(trivial? problem) (trivial-solution problem)]
+      [else
+        (combine
+          ...
+          problem  ; <- original problem can be needed to combine
+          ...
+          (gen-rec (generate-problem-0 problem))
+          ...
+          (gen-rec (generate-problem-1 problem))
+          ...
+          (gen-rec (generate-problem-2 problem))
+          ...
+          )]))
 
 
 5.- Implement template
