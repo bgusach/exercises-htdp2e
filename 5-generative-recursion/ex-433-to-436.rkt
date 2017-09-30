@@ -127,5 +127,15 @@
 ; =================== End of exercise ==================
 
 
+
+
+; ==================== Exercise 436 ====================:
+
+; Termination: create-food won't loop forever. Rather sooner
+; than later a non-clashing Posn will be generated and
+; returned.
+
+; =================== End of exercise ==================
+
 (test)
 
