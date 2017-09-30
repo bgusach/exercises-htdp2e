@@ -57,6 +57,37 @@
 
 
 
+; ==================== Exercise 434 ====================
+
+; [List-of Number] Number -> [List-of Number]
+(check-expect (smallers '(5 3 1) 5) '(5 3 1))
+(define (smallers l n)
+  (cond
+    [(empty? l) '()]
+    [else 
+      (if 
+        (<= (first l) n)
+        (cons (first l) (smallers (rest l) n))
+        (smallers (rest l) n)
+        )]))
+
+; Q: What can go wrong when this version is used with the 
+;    quick-sort< definition from Recursion that Ignores Structure? 
+; A: This `smallers` function performs a less-than-or-equal 
+;    comparision, causing the function call (smallers '(5 3 1) 5) 
+;    to return '(5 3 1). 
+;    This function is used in the quick-sort< to generate a subproblem 
+;    (numbers smaller than the pivot), and may return the very list 
+;    that was passed. E.g. if quick-sort< is passed '(5 3 1),
+;    takes 5 as pivot and passes '(5 3 1) to the `smallers` function,
+;    that list will be passed again to quick-sort< and will recur
+;    forever.
+;
+;    In other words: the generative step can create the same initial 
+;    problem, resulting in endless recursion.
+
+; =================== End of exercise ==================
+
 
 (test)
 
