@@ -49,8 +49,18 @@
 ; L for large and S for small, the greatest common divisor 
 ; is equal to the greatest common divisor of S and the 
 ; remainder of L divided by S.
+; 
 ; I.e.:
 ;     (gcd L S) == (gcd S (remainder L S))
+;
+; E.g.:
+;     (gcd 15 10)
+;     (gcd 10 (remainder 15 10))
+;     (gcd 10 5)
+;     (gcd 5 (remainder 10 5))
+;     (gcd 5 0)
+;     ^^^ edge case: 0 can be evenly divided by any other number
+;     5
 
 (check-expect (gcd-generative 6 25) 1)
 (check-expect (gcd-generative 18 24) 6)
@@ -77,46 +87,6 @@
 
 ; ==================== Exercise 441 ====================
 
-(define (quick-sort< alon)
-  (cond
-    [(empty? alon) '()]
-    [(empty? (rest alon)) alon]
-    [else
-      (local
-        ((define pivot (first alon))
-         (define pivot-equals (filter (λ (x) (= x pivot)) alon))
-         (define pivot-diffs (filter (λ (x) (not (= x pivot))) alon))
-         )
-        ; -- IN --
-        (append
-          (quick-sort< (smallers pivot-diffs pivot))
-          pivot-equals
-          (quick-sort< (largers pivot-diffs pivot))
-          ))]))
-
-
-(define (largers l n)
-  (cond
-    [(empty? l) '()]
-    [else 
-      (if 
-        (>= (first l) n)
-        (cons (first l) (largers (rest l) n))
-        (largers (rest l) n)
-        )]))
-
-(define (smallers l n)
-  (cond
-    [(empty? l) '()]
-    [else 
-      (if 
-        (<= (first l) n)
-        (cons (first l) (smallers (rest l) n))
-        (smallers (rest l) n)
-        )]))
-
-(require racket/trace)
-(trace quick-sort<)
 
 ; (quick-sort< '(10 6 8 9 14 12 3 11 14 16 2))
 
@@ -161,9 +131,7 @@
 ;   )
 
 ; (append
-;   (append
-;     '(2 3)
-;     '(6)
+;   (append '(2 3) '(6)
 ;     (quick-sort< '(8 9))
 ;     )
 ;   '(10)
@@ -171,9 +139,7 @@
 ;   )
 
 ; (append
-;   (append
-;     '(2 3)
-;     '(6)
+;   (append '(2 3) '(6)
 ;     (append
 ;       (quick-sort< '())
 ;       '(8)
@@ -184,9 +150,7 @@
 ;   )
 
 ; (append
-;   (append
-;     '(2 3)
-;     '(6)
+;   (append '(2 3) '(6)
 ;     (append '() '(8) '(9))
 ;     )
 ;   '(10)
@@ -194,11 +158,7 @@
 ;   )
 
 ; (append
-;   (append
-;     '(2 3)
-;     '(6)
-;     '(8 9)
-;     )
+;   (append '(2 3) '(6) '(8 9))
 ;   '(10)
 ;   (quick-sort< '(14 12 11 14 16))
 ;   )
@@ -243,20 +203,15 @@
 ; (append
 ;   '(2 3 6 8 9)
 ;   '(10)
-;   (append
-;     '(11 12)
-;     '(14 14)
+;   (append '(11 12) '(14 14)
 ;     (quick-sort< '(16))
 ;     ))
 
 ; (append
 ;   '(2 3 6 8 9)
 ;   '(10)
-;   (append
-;     '(11 12)
-;     '(14 14)
-;     '(16)
-;      ))
+;   (append '(11 12) '(14 14) '(16))
+;   )
 
 ; (append
 ;   '(2 3 6 8 9)
@@ -274,12 +229,13 @@
 ; A: 5 (6 in total)
 
 ; Q: Suggest a general rule for a list of length n.
-; A: for each element in the list:
-;    ~1 quick-sort< call 
-;    ~.5 append calls
+; A: A naive approach would consist of dividing the calls
+;    by the number of elements in the list:
+;    ~1 quick-sort< calls/item
+;    ~.5 append calls/item
 
 
-(quick-sort< '(1 2 3 4 5 6 7 8 9 10 11 12 13 14))
+; (quick-sort< '(1 2 3 4 5 6 7 8 9 10 11 12 13 14))
 
 ; (append
 ;   (quick-sort< '())
@@ -464,8 +420,165 @@
 ; A: 12 (13 in total)
 
 ; Q: Does this contradict the first part of the exercise?
-; A: Just my estimations on time complexity. Truth is, quicksort
+; A: Just the estimations on time complexity. Truth is, quicksort
 ;    performs pretty bad on already sorted data.
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 442 ====================
+
+(define (quick-sort< alon)
+  (cond
+    [(empty? alon) '()]
+    [(empty? (rest alon)) alon]
+    [else
+      (local
+        ((define pivot (first alon))
+         (define pivot-equals (filter (λ (x) (= x pivot)) alon))
+         (define pivot-diffs (filter (λ (x) (not (= x pivot))) alon))
+         )
+        ; -- IN --
+        (append
+          (quick-sort< (smallers pivot-diffs pivot))
+          pivot-equals
+          (quick-sort< (largers pivot-diffs pivot))
+          ))]))
+
+
+(define (largers l n)
+  (cond
+    [(empty? l) '()]
+    [else 
+      (if 
+        (>= (first l) n)
+        (cons (first l) (largers (rest l) n))
+        (largers (rest l) n)
+        )]))
+
+(define (smallers l n)
+  (cond
+    [(empty? l) '()]
+    [else 
+      (if 
+        (<= (first l) n)
+        (cons (first l) (smallers (rest l) n))
+        (smallers (rest l) n)
+        )]))
+
+
+; List-of-numbers -> List-of-numbers
+; produces a sorted version of l
+(define (sort< l)
+  (cond
+    [(empty? l) '()]
+    [else 
+      (insert 
+        (first l) 
+        (sort< (rest l))
+        )]))
+ 
+
+; Number List-of-numbers -> List-of-numbers
+; inserts n into the sorted list of numbers l 
+(define (insert n l)
+  (cond
+    [(empty? l) (cons n '())]
+    [else 
+      (if 
+        (< n (first l))
+        (cons n l)
+        (cons (first l) (insert n (rest l)))
+        )]))
+
+
+(define (create-random-list len)
+  (cond
+    [(zero? len) '()]
+    [(cons (random 100) (create-random-list (sub1 len)))]
+    ))
+
+
+; Tests the passed algorithms against random data
+(define (test-sort-algs name2fn len)
+  (local
+    ((define times 200)
+     (define (measure fn)
+       (time 
+         (for ([_ (in-range times)]) 
+           (fn (create-random-list len))
+           ))))
+
+    ; -- IN --
+    (for [(pair name2fn)]
+      (display (format "~a (len=~a): " (first pair) len))
+      (measure (second pair))
+      )))
+
+
+(display "insert-sort vs quick-sort\n========================\n")
+; NOTE: store the results on a dummy so that they don't get
+; dumped on stdout
+(define _ 
+  (for [(size (in-range 0 40 2))]
+    (test-sort-algs 
+      `(("insert-sort" ,sort< ) 
+        ("quick-sort" ,quick-sort<)
+        )
+      size
+      )
+    (display "\n")
+    ))
+
+; Q: Does the experiment confirm the claim that the plain 
+;    sort< function often wins over quick-sort< for short 
+;    lists and vice versa?
+; A: Yes. Around length 32, quick-sort starts to win over
+;    insert-sort.
+
+(define CROSS-OVER 32)
+
+(define (clever-sort< alon)
+  (cond
+    ; NOTE: calculating length of linked list on each
+    ; iteration is not very efficient.
+    [(< (length alon) CROSS-OVER) (sort< alon)]
+    [else
+      (local
+        ((define pivot (first alon))
+         (define pivot-equals (filter (λ (x) (= x pivot)) alon))
+         (define pivot-diffs (filter (λ (x) (not (= x pivot))) alon))
+         )
+        ; -- IN --
+        (append
+          (quick-sort< (smallers pivot-diffs pivot))
+          pivot-equals
+          (quick-sort< (largers pivot-diffs pivot))
+          ))]))
+
+(display "insert-sort vs quick-sort vs clever-sort\n")
+(display "========================================\n")
+
+(define _1
+  (for [(size (in-range 0 40 2))]
+    (test-sort-algs 
+      `(("insert-sort" ,sort< ) 
+        ("quick-sort" ,quick-sort<)
+        ("clever-sort" ,clever-sort<)
+        )
+      size
+      )
+    (display "\n")
+    ))
+
+; NOTE: As expected, the clever-sort behaves like insert-sort
+; with small lists, and like quick-sort with larger lists
+
+; Q: Compare with excercise-427
+; A: The only real difference is the threshold. In exercise 427
+;    the threshold was 3 while here it is 32
 
 ; =================== End of exercise ==================
 
