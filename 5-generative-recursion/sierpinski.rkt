@@ -31,7 +31,7 @@
         ((define subtriangle 
            (sierpinski (/ side 2))
            ))
-        ; -- IN
+        ; -- IN --
         (above
           subtriangle
           (beside subtriangle subtriangle)
