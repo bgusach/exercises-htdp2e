@@ -3,8 +3,6 @@
 (require test-engine/racket-tests)
 
 
-; ### Constants
-
 ; ### Data Definitions
 
 ; A File is one of: 
@@ -77,7 +75,6 @@
 
 ; ==================== Exercise 453 ====================
 
-
 ; Line -> [List-of Token]
 ; Converts a line into a list of tokens or "words"
 (check-expect
@@ -137,6 +134,61 @@
     [(string-whitespace? (first line)) (rest line)]
     [else (drop-first-token (rest line))]
     ))
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 454 ====================
+
+; N [List-of Any] -> [List-of [List-of Any]]
+; Given a Natural `n` and a list whose lenght is `(* n n)`
+; groups a list of `n` lists with `n` elements each.
+; In other words, groups the elements into chunks of length `n`
+(check-expect
+  (create-matrix 2 '(1 2 3 4))
+  '((1 2)
+    (3 4)
+    ))
+(check-expect
+  (create-matrix 3 '("a" "b" "c" "d" "e" "f" "g" "h" "i"))
+  '(("a" "b" "c")
+    ("d" "e" "f")
+    ("g" "h" "i")
+    ))
+(define (create-matrix n lst)
+  (cond
+    [(empty? lst) '()]
+    [else
+      (cons 
+        (take-first n lst)
+        (create-matrix n (drop-first n lst))
+        )]))
+
+
+; N [List-of Any] -> [List-of Any]
+; Takes the first n elements of the list
+(define (take-first n lst)
+  (cond 
+    [(zero? n) '()]
+    [(empty? lst) '()]
+    [else
+      (cons 
+        (first lst)
+        (take-first (sub1 n) (rest lst))
+        )]))
+
+
+; N [List-of Any] -> [List-of Any]
+; Drops the first n elements of the list
+(define (drop-first n lst)
+  (cond 
+    [(zero? n) lst]
+    [(empty? lst) '()]
+    [else (drop-first (sub1 n) (rest lst))]
+    ))
+
 ; =================== End of exercise ==================
 
 (test)
