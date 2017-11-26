@@ -38,6 +38,19 @@
     ))
 
 
+; [Number -> Number] Number -> Number
+; Finds the root of the tangent of `f` at `r1`
+(check-error (root-of-tangent func0 5))
+(check-within (root-of-tangent func1 5) 0 EPS)
+(check-within (root-of-tangent func2 2) 1 EPS)
+(define (root-of-tangent f r1)
+  (-
+    r1
+    (/
+      (f r1)
+      (slope f r1)
+      )))
+
 ; =================== End of exercise ==================
 
 (test)
