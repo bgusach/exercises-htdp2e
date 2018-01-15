@@ -17,7 +17,6 @@
  
 ; [Number -> Number] Number Number -> Number
 ; computes the area under the graph of f between a and b
-; assume (< a b) holds 
 (check-within (integrate-k const-fn 12 22) 200 EPS)
 (check-within (integrate-k linear-fn 0 10) 100 EPS)
 ; (check-within (integrate-k quadratic 0 10) 1000 EPS)
@@ -47,7 +46,6 @@
  
 ; [Number -> Number] Number Number -> Number
 ; computes the area under the graph of f between a and b
-; assume (< a b) holds 
 (check-within (integrate-r const-fn 12 22) 200 EPS-2)
 (check-within (integrate-r linear-fn 0 10) 100 EPS-2)
 (check-within (integrate-r quadratic 0 10) 1000 EPS-2)
@@ -63,6 +61,34 @@
         (f (+ OFFSET (* i WIDTH))) 
         ))))
 
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 460 ====================
+
+(define EPS-3 0.01)
+
+; [Number -> Number] Number Number -> Number
+(check-within (integrate-dc const-fn 12 22) 200 EPS-2)
+(check-within (integrate-dc linear-fn 0 10) 100 EPS-2)
+(check-within (integrate-dc quadratic 0 10) 1000 EPS-2)
+(define (integrate-dc f a b) 
+  (local
+    ((define WIDTH (- b a))
+     (define MID (* (+ a b) 1/2))
+     )
+
+    ; -- IN --
+    (if 
+      (< WIDTH EPS-3)
+      (integrate-k f a b)
+      (+
+        (integrate-dc f a MID)
+        (integrate-dc f MID b)
+        ))))
 
 ; =================== End of exercise ==================
 
