@@ -92,5 +92,32 @@
 
 ; =================== End of exercise ==================
 
+
+
+
+; ==================== Exercise 461 ====================
+
+; [Number -> Number] Number Number -> Number
+(check-within (integrate-adaptative const-fn 12 22) 200 EPS-2)
+(check-within (integrate-adaptative linear-fn 0 10) 100 EPS-2)
+(check-within (integrate-adaptative quadratic 0 10) 1000 EPS-2)
+(define (integrate-adaptative f a b) 
+  (local
+    ((define WIDTH (- b a))
+     (define MID (* (+ a b) 1/2))
+     (define LEFT-TRAP (integrate-k f a MID))
+     (define RIGHT-TRAP (integrate-k f MID b))
+     )
+
+    ; -- IN --
+    (if
+      (< (abs (- LEFT-TRAP RIGHT-TRAP)) (* WIDTH EPS-3))
+      (integrate-k f a b)
+      (+ (integrate-adaptative f a MID) 
+         (integrate-adaptative f MID b)
+         ))))
+
+; =================== End of exercise ==================
+
 (test)
 
