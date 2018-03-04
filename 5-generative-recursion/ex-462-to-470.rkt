@@ -329,35 +329,43 @@
   '(1 1 2)
   )
 
-; SOE -> Solution
-; Given a triangular SOE, returns a solution
+; TM -> Solution
+; Given a triangular matrix, returns a solution
 (check-expect (solve TM) TM-SOL)
 (define (solve M)
   (local
-    ((define (resolve M sol)
-       (if
-         (empty? M) 
-         sol
-         (local
-           ((define eq (first M))
-            (define eq-lhs (lhs eq))
-            (define first-coeff (first eq-lhs))
-            (define eq-rhs (rhs eq))
-            (define partial (plug-in (rest eq-lhs) sol))
-            )
-
-           ; -- IN --
-           (resolve
-             (rest M)
-             (cons
-               (/ (- eq-rhs partial) first-coeff)
-               sol
-               ))))))
+    ((define (reduce eq sol)
+       (local
+         ((define eq-lhs (lhs eq))
+          (define first-coeff (first eq-lhs))
+          (define eq-rhs (rhs eq))
+          (define partial (plug-in (rest eq-lhs) sol))
+          )
+         
+         ; -- IN --
+         (cons
+           (/ (- eq-rhs partial) first-coeff)
+           sol
+           ))))
 
     ; -- IN --
-    (resolve (reverse M) '())
+    (foldr reduce '() M)
     ))
 
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 470 ====================
+
+; SOE -> Solution
+; Resolves a SOE
+(check-expect (gauss M) S)
+(define (gauss M)
+  (solve (triangulate M))
+  )
 
 ; =================== End of exercise ==================
 
