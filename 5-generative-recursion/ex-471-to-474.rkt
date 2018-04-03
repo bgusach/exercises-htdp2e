@@ -75,8 +75,8 @@
 
 ; Node Node Graph -> [Maybe Path]
 (check-expect (find-path 'C 'D sample-graph-0) '(C D))
-; (check-member-of (find-path 'E 'D sample-graph-0) '(E F D) '(E C D))
-; (check-expect (find-path 'C 'G sample-graph-0) #f)
+(check-member-of (find-path 'E 'D sample-graph-0) '(E F D) '(E C D))
+(check-expect (find-path 'C 'G sample-graph-0) #f)
 (define (find-path orig dest graph)
   (cond
     [(symbol=? orig dest) (list dest)]
@@ -142,6 +142,73 @@
       (cons? (find-path (first comb) (second comb) graph))
       )))
 
+
+; =================== End of exercise ==================
+
+
+(define cyclic-graph
+  '((A (B E))
+    (B (E F))
+    (C (B D))
+    (D ())
+    (E (C F))
+    (F (D G))
+    (G ())
+    ))
+
+
+; ==================== Exercise 473 ====================
+
+(check-expect (find-path 'B 'C cyclic-graph) '(B E C))
+
+; Next one loops forever
+; (check-expect (test-on-all-nodes cyclic-graph) #f)
+
+; =================== End of exercise ==================
+
+
+
+
+; ==================== Exercise 474 ====================
+
+(check-expect (find-path.v2 'C 'D sample-graph-0) '(C D))
+(check-member-of (find-path.v2 'E 'D sample-graph-0) '(E F D) '(E C D))
+(check-expect (find-path.v2 'C 'G sample-graph-0) #f)
+(define (find-path.v2 orig dest graph)
+  (local
+    ((define (find-path orig dest)
+      (cond
+        [(symbol=? orig dest) (list dest)]
+        [else 
+          (local
+            ((define candidate
+               (find-path/list (neighbours orig graph) dest)
+               ))
+            ; -- IN --
+            (if
+              (false? candidate)
+              #f
+              (cons orig candidate)
+              ))]))
+
+      (define (find-path/list origs dest)
+        (cond
+          [(empty? origs) #f]
+          [else
+            (local
+              ((define candidate 
+                 (find-path (first origs) dest)
+                 ))
+              ; -- IN --
+              (if
+                (false? candidate)
+                (find-path/list (rest origs) dest)
+                candidate
+                ))])))
+
+    ; -- IN --
+    (find-path orig dest)
+    ))
 
 ; =================== End of exercise ==================
 
