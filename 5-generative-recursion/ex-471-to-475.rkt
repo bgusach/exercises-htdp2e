@@ -98,7 +98,7 @@
 ; [List-of Node] Node Graph -> [Maybe Path]
 ; Finds a path from some node on `origs` to
 ; `dest`; otherwise, it produces #false
-; (check-expect (find-path/list '(A) 'B sample-graph-0) '(B))
+(check-expect (find-path/list '(A) 'B sample-graph-0) '(A B))
 (define (find-path/list origs dest graph)
   (cond
     [(empty? origs) #false]
@@ -107,6 +107,7 @@
         ((define candidate 
            (find-path (first origs) dest graph)
            ))
+
         ; -- IN --
         (if 
           (false? candidate)
@@ -209,6 +210,38 @@
     ; -- IN --
     (find-path orig dest)
     ))
+
+; =================== End of exercise ==================
+
+
+; ==================== Exercise 475 ====================
+
+; [List-of Node] Node Graph -> [Maybe Path]
+; Finds a path from some node on `origs` to
+; `dest`; otherwise, it produces #false
+(check-expect (find-path/list.v2 '(A) 'B sample-graph-0) '(A B))
+(define (find-path/list.v2 origs dest graph)
+  (cond
+    [(empty? origs) #false]
+    [else
+      (foldl
+        (λ (it acc) 
+          (if 
+            (list? acc)
+            acc
+            (find-path it dest graph)
+            ))
+        #false
+        origs
+        )]))
+
+; Q: How does ISL+'s ormap differ from Racket's ormap?
+; A: ISL+'s returns #t if any value is #t or #f otherwise, 
+;    whereas Racket's returns the first non-falsy
+;    value or #f is none at all. 
+;    In our case Racket's ormap would help quite a lot,
+;    since we could loop through neighbours, and if 
+;    any provides a valid path, that would be returned
 
 ; =================== End of exercise ==================
 
