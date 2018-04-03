@@ -245,5 +245,81 @@
 
 ; =================== End of exercise ==================
 
+
+
+
+; ==================== Exercise 476 ====================
+
+(define-struct transition [current key next])
+(define-struct fsm [initial transitions final])
+ 
+; An FSM is a structure:
+;   (make-fsm FSM-State [List-of 1Transition] FSM-State)
+; A 1Transition is a structure:
+;   (make-transition FSM-State 1String FSM-State)
+; An FSM-State is String.
+ 
+; data example: see exercise 109
+ 
+(define fsm-a-bc*-d
+  (make-fsm
+    "AA"
+    (list (make-transition "AA" "a" "BC")
+          (make-transition "BC" "b" "BC")
+          (make-transition "BC" "c" "BC")
+          (make-transition "BC" "d" "DD")
+          )
+    "DD"
+    ))
+
+; FSM String -> Boolean
+; Returns whether the string matches the FSM
+(check-expect (fsm-match? fsm-a-bc*-d "acbd") #t)
+(check-expect (fsm-match? fsm-a-bc*-d "ad") #t)
+(check-expect (fsm-match? fsm-a-bc*-d "abcd") #t)
+(check-expect (fsm-match? fsm-a-bc*-d "da") #f)
+(check-expect (fsm-match? fsm-a-bc*-d "aa") #f)
+(check-expect (fsm-match? fsm-a-bc*-d "lol") #f)
+(define (fsm-match? fsm str)
+  (local
+    ((define final (fsm-final fsm))
+     (define transitions (fsm-transitions fsm))
+
+     ; FSM-State 1String -> [Maybe FSM-State]
+     (define (find-next-state state input)
+       (for/or ([trans transitions])
+         (if
+           (and 
+             (string=?  (transition-current trans) state)
+             (string=?  (transition-key trans) input)
+             )
+           (transition-next trans)
+           #f
+           )))
+
+     ; FSM-State [List-of 1String] -> Boolean
+     (define (move state inputs)
+       (cond
+         [(empty? inputs) (string=? state final)]
+         [else
+           (local
+             ((define next-state 
+                (find-next-state state (first inputs))
+                ))
+
+             ; -- IN --
+             (if
+               (false? next-state)
+               #f
+               (move next-state (rest inputs))
+               ))])))
+
+    ; -- IN --
+    (move (fsm-initial fsm) (explode str))
+    ))
+
+
+; =================== End of exercise ==================
+
 (test)
 
